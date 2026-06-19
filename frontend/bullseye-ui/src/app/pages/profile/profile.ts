@@ -12,6 +12,8 @@ import { PaymentService } from '../../services/payment.service';
 import { PdfService } from '../../services/pdf.service';
 import { ModalService } from '../../services/modal.service';
 
+import { environment } from '../../../environments/environment';
+
 interface SidebarItem {
   id: string;
   title: string;

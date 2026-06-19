@@ -19,6 +19,8 @@ import { HttpClient } from '@angular/common/http';
 
 import { MarketService } from '../../services/market.service';
 
+import { environment } from '../../../environments/environment';
+
 import { OrderService } from '../../services/order.service';
 
 interface WatchlistStock {

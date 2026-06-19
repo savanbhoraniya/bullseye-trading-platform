@@ -24,6 +24,8 @@ import { OrderService } from '../../services/order.service';
 
 import { StockModalComponent } from '../../components/stock-modal/stock-modal.component';
 
+import { environment } from '../../../environments/environment';
+
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartType } from 'chart.js';
 

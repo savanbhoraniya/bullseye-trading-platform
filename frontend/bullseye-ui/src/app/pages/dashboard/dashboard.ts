@@ -38,6 +38,8 @@ import {
   ApexStroke
 } from 'ng-apexcharts';
 
+import { environment } from '../../../environments/environment';
+
 export type ChartOptions = {
   series: ApexAxisChartSeries;
   chart: ApexChart;
