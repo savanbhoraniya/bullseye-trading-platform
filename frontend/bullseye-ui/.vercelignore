@@ -1,0 +1,8 @@
+node_modules
+.angular
+.vscode
+*.log
+.DS_Store
+dist
+coverage
+.nyc_output

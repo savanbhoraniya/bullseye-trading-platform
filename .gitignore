@@ -1,0 +1,16 @@
+# Angular
+frontend/bullseye-ui/node_modules
+frontend/bullseye-ui/dist
+
+# Spring Boot
+backend/backend/target
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode
+.idea
+
+# Environment
+.env

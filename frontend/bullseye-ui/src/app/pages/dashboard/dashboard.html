@@ -1,0 +1,510 @@
+<main class="dashboard">
+
+  <!-- LEFT: Chart Panel -->
+  <section class="chart-panel">
+    <div class="chart-header">
+      <div class="chart-title-block">
+        <h1>{{ selectedIndex.name }}</h1>
+        <p class="subtitle">Indian Market Index</p>
+      </div>
+
+      <div class="price-box">
+        <div class="price" [class.up]="selectedIndex.change >= 0" [class.down]="selectedIndex.change < 0">
+          ₹{{ selectedIndex.price | number:'1.2-2' }}
+        </div>
+        <div class="change" [class.up]="selectedIndex.change >= 0" [class.down]="selectedIndex.change < 0">
+          {{ selectedIndex.change >= 0 ? '▲' : '▼' }}
+          {{ selectedIndex.change >= 0 ? '+' : '' }}{{ selectedIndex.change | number:'1.1-1' }}
+          ({{ selectedIndex.percent | number:'1.2-2' }}%)
+        </div>
+      </div>
+    </div>
+
+    <!-- ApexCharts Widget -->
+    <div class="chart-area-wrapper">
+      <!-- Period Selection Buttons -->
+      <div class="index-period-selector">
+        <button 
+          *ngFor="let period of indexPeriods"
+          class="period-btn" 
+          [class.active]="indexSelectedPeriod === period"
+          (click)="changeIndexPeriod(period)">
+          {{ period }}
+        </button>
+      </div>
+
+      <!-- Chart Type Toggle (Right Corner) -->
+      <div class="index-chart-type-toggle">
+        <button 
+          class="chart-type-btn" 
+          [class.active]="indexChartType === 'line'"
+          (click)="changeIndexChartType('line')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          Line
+        </button>
+        <button 
+          class="chart-type-btn" 
+          [class.active]="indexChartType === 'candlestick'"
+          (click)="changeIndexChartType('candlestick')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="2" x2="12" y2="6"></line>
+            <line x1="12" y1="18" x2="12" y2="22"></line>
+            <rect x="8" y="6" width="8" height="12"></rect>
+          </svg>
+          Candle
+        </button>
+      </div>
+
+      <div class="chart-area">
+        <apx-chart
+          [series]="indexChartOptions.series!"
+          [chart]="indexChartOptions.chart!"
+          [xaxis]="indexChartOptions.xaxis!"
+          [yaxis]="indexChartOptions.yaxis!"
+          [tooltip]="indexChartOptions.tooltip!"
+          [grid]="indexChartOptions.grid!"
+          [dataLabels]="indexChartOptions.dataLabels!"
+          [stroke]="indexChartOptions.stroke!"
+          [colors]="indexChartOptions.colors!">
+        </apx-chart>
+      </div>
+    </div>
+
+    <!-- Chart Stats -->
+    <div class="chart-stats">
+      <div class="stat-item">
+        <span class="stat-label">Open</span>
+        <span class="stat-value">{{ selectedIndex.open | number:'1.2-2' }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">High</span>
+        <span class="stat-value up">{{ selectedIndex.high | number:'1.2-2' }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Low</span>
+        <span class="stat-value down">{{ selectedIndex.low | number:'1.2-2' }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Prev Close</span>
+        <span class="stat-value">{{ selectedIndex.prevClose | number:'1.2-2' }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">52W High</span>
+        <span class="stat-value up">{{ selectedIndex.high52w | number:'1.2-2' }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">52W Low</span>
+        <span class="stat-value down">{{ selectedIndex.low52w | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- Market Movers -->
+    <div class="movers-section">
+      <div class="movers-header">
+        <span class="movers-title">Market Movers</span>
+        <span class="movers-time">NSE · Today</span>
+      </div>
+
+      <div class="movers-grid">
+
+        <!-- Top Gainers -->
+        <div class="movers-col">
+          <div class="movers-col-title gainers-title">▲ Top Gainers</div>
+          <div class="mover-row" *ngFor="let stock of topGainers" (click)="openStockModal(stock.symbol)" style="cursor: pointer; transition: background 0.3s;">
+            <div class="mover-left">
+              <span class="mover-symbol">{{ stock.symbol }}</span>
+              <span class="mover-name">{{ stock.name }}</span>
+            </div>
+            <div class="mover-right">
+              <span class="mover-price">₹{{ stock.price | number:'1.2-2' }}</span>
+              <span class="mover-change up">+{{ stock.change | number:'1.2-2' }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Losers -->
+        <div class="movers-col">
+          <div class="movers-col-title losers-title">▼ Top Losers</div>
+          <div class="mover-row" *ngFor="let stock of topLosers" (click)="openStockModal(stock.symbol)" style="cursor: pointer; transition: background 0.3s;">
+            <div class="mover-left">
+              <span class="mover-symbol">{{ stock.symbol }}</span>
+              <span class="mover-name">{{ stock.name }}</span>
+            </div>
+            <div class="mover-right">
+              <span class="mover-price">₹{{ stock.price | number:'1.2-2' }}</span>
+              <span class="mover-change down">{{ stock.change | number:'1.2-2' }}%</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Trending Stocks Section (NEW) -->
+    <div class="trending-section">
+      <div class="trending-header">
+        <div class="trending-title-group">
+          <span class="trending-icon">🔥</span>
+          <span class="trending-title">Trending Stocks</span>
+        </div>
+        <span class="trending-subtitle">Most active on BullsEye today</span>
+      </div>
+
+      <div class="trending-grid">
+        <div 
+          class="trending-card" 
+          *ngFor="let stock of trendingStocks; let i = index" 
+          (click)="openStockModal(stock.symbol)">
+          <div class="trending-rank">{{ i + 1 }}</div>
+          <div class="trending-info">
+            <div class="trending-symbol">{{ stock.symbol }}</div>
+            <div class="trending-name">{{ stock.name }}</div>
+          </div>
+          <div class="trending-price-section">
+            <div class="trending-price">₹{{ stock.price | number:'1.2-2' }}</div>
+            <div class="trending-change" [class.up]="stock.change >= 0" [class.down]="stock.change < 0">
+              {{ stock.change >= 0 ? '▲' : '▼' }} {{ stock.change >= 0 ? '+' : '' }}{{ stock.change | number:'1.2-2' }}%
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sector Performance -->
+    <div class="sectors-section">
+      <div class="section-header">
+        <span class="section-title">Sector Performance</span>
+        <span class="section-subtitle">NSE Sectoral Indices</span>
+      </div>
+
+      <div class="sectors-grid">
+        <div class="sector-card" *ngFor="let sector of sectors">
+          <div class="sector-name">{{ sector.name }}</div>
+          <div class="sector-price">₹{{ sector.price | number:'1.2-2' }}</div>
+          <div class="sector-change" [class.up]="sector.change >= 0" [class.down]="sector.change < 0">
+            {{ sector.change >= 0 ? '▲' : '▼' }} {{ sector.change >= 0 ? '+' : '' }}{{ sector.change | number:'1.2-2' }}%
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market News -->
+    <div class="news-section">
+      <div class="section-header">
+        <span class="section-title">Market News</span>
+        <span class="section-subtitle">Latest Updates</span>
+      </div>
+
+      <div class="news-list">
+        <a class="news-item" *ngFor="let news of marketNews" [href]="news.url" target="_blank">
+          <div class="news-content">
+            <div class="news-title">{{ news.title }}</div>
+            <div class="news-meta">
+              <span class="news-source">{{ news.source }}</span>
+              <span class="news-dot">·</span>
+              <span class="news-time">{{ news.time }}</span>
+            </div>
+          </div>
+          <svg class="news-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 4l4 4-4 4"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Mutual Funds -->
+    <div class="mutual-funds-section">
+      <div class="section-header">
+        <span class="section-title">Mutual Funds</span>
+        <span class="view-all-link">VIEW ALL MUTUAL FUNDS →</span>
+      </div>
+
+      <div class="mf-tabs">
+        <button class="mf-tab active">All Funds</button>
+        <button class="mf-tab">Highest Returns</button>
+        <button class="mf-tab">Safe SIPs</button>
+        <button class="mf-tab">Global and AI Funds</button>
+      </div>
+
+      <div class="mf-cards">
+        <div class="mf-card">
+          <div class="mf-header">
+            <div class="mf-icon bullseye">
+              <svg viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="18" fill="#FF6B35"/>
+                <circle cx="20" cy="20" r="12" fill="white"/>
+                <circle cx="20" cy="20" r="6" fill="#FF6B35"/>
+                <path d="M20 8 L24 16 L20 12 L16 16 Z" fill="white"/>
+              </svg>
+            </div>
+            <div class="mf-info">
+              <div class="mf-name">BullsEye Large Cap Fund</div>
+              <div class="mf-badges">
+                <span class="mf-badge equity">EQUITY</span>
+                <span class="mf-badge cap">LARGE CAP</span>
+              </div>
+            </div>
+            <svg class="mf-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 4l4 4-4 4"/>
+            </svg>
+          </div>
+          <div class="mf-stats">
+            <div class="mf-stat">
+              <span class="mf-stat-label">Investors</span>
+              <span class="mf-stat-value">12.5 L</span>
+            </div>
+            <div class="mf-stat">
+              <span class="mf-stat-label">Min. SIP</span>
+              <span class="mf-stat-value">500</span>
+            </div>
+            <div class="mf-stat">
+              <span class="mf-stat-label">3Y Returns</span>
+              <span class="mf-stat-value returns-positive">14.25% per year</span>
+            </div>
+          </div>
+          <div class="mf-footer">
+            <svg class="mf-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="8" cy="8" r="7"/>
+              <path d="M5 8l2 2 4-4"/>
+            </svg>
+            <span>Returns in 5 years</span>
+          </div>
+        </div>
+
+        <div class="mf-card">
+          <div class="mf-header">
+            <div class="mf-icon bullseye">
+              <svg viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="18" fill="#FF6B35"/>
+                <circle cx="20" cy="20" r="12" fill="white"/>
+                <circle cx="20" cy="20" r="6" fill="#FF6B35"/>
+                <path d="M20 8 L24 16 L20 12 L16 16 Z" fill="white"/>
+              </svg>
+            </div>
+            <div class="mf-info">
+              <div class="mf-name">BullsEye Mid Cap Fund</div>
+              <div class="mf-badges">
+                <span class="mf-badge equity">EQUITY</span>
+                <span class="mf-badge cap">MID CAP</span>
+              </div>
+            </div>
+            <svg class="mf-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 4l4 4-4 4"/>
+            </svg>
+          </div>
+          <div class="mf-stats">
+            <div class="mf-stat">
+              <span class="mf-stat-label">Investors</span>
+              <span class="mf-stat-value">8.3 L</span>
+            </div>
+            <div class="mf-stat">
+              <span class="mf-stat-label">Min. SIP</span>
+              <span class="mf-stat-value">500</span>
+            </div>
+            <div class="mf-stat">
+              <span class="mf-stat-label">3Y Returns</span>
+              <span class="mf-stat-value returns-positive">17.80% per year</span>
+            </div>
+          </div>
+          <div class="mf-footer">
+            <svg class="mf-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="8" cy="8" r="7"/>
+              <path d="M5 8l2 2 4-4"/>
+            </svg>
+            <span>Returns in 5 years</span>
+          </div>
+        </div>
+
+        <div class="mf-card">
+          <div class="mf-header">
+            <div class="mf-icon bullseye">
+              <svg viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="18" fill="#FF6B35"/>
+                <circle cx="20" cy="20" r="12" fill="white"/>
+                <circle cx="20" cy="20" r="6" fill="#FF6B35"/>
+                <path d="M20 8 L24 16 L20 12 L16 16 Z" fill="white"/>
+              </svg>
+            </div>
+            <div class="mf-info">
+              <div class="mf-name">BullsEye Small Cap Fund</div>
+              <div class="mf-badges">
+                <span class="mf-badge equity">EQUITY</span>
+                <span class="mf-badge cap">SMALL CAP</span>
+              </div>
+            </div>
+            <svg class="mf-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 4l4 4-4 4"/>
+            </svg>
+          </div>
+          <div class="mf-stats">
+            <div class="mf-stat">
+              <span class="mf-stat-label">Investors</span>
+              <span class="mf-stat-value">5.2 L</span>
+            </div>
+            <div class="mf-stat">
+              <span class="mf-stat-label">Min. SIP</span>
+              <span class="mf-stat-value">1000</span>
+            </div>
+            <div class="mf-stat">
+              <span class="mf-stat-label">3Y Returns</span>
+              <span class="mf-stat-value returns-positive">21.45% per year</span>
+            </div>
+          </div>
+          <div class="mf-footer">
+            <svg class="mf-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="8" cy="8" r="7"/>
+              <path d="M5 8l2 2 4-4"/>
+            </svg>
+            <span>Returns in 4 years</span>
+            <span>Returns in 4 years</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Learn with BullsEye -->
+    <div class="learn-section">
+      <div class="section-header">
+        <span class="section-title">Learn with BullsEye</span>
+      </div>
+
+      <div class="learn-tabs">
+        <button 
+          class="learn-tab" 
+          [class.active]="selectedLearnTab === 'Stock Market'"
+          (click)="selectLearnTab('Stock Market')">
+          Stock Market
+        </button>
+        <button 
+          class="learn-tab" 
+          [class.active]="selectedLearnTab === 'Investment'"
+          (click)="selectLearnTab('Investment')">
+          Investment
+        </button>
+        <button 
+          class="learn-tab" 
+          [class.active]="selectedLearnTab === 'Trading'"
+          (click)="selectLearnTab('Trading')">
+          Trading
+        </button>
+        <button 
+          class="learn-tab" 
+          [class.active]="selectedLearnTab === 'Mutual Fund'"
+          (click)="selectLearnTab('Mutual Fund')">
+          Mutual Fund
+        </button>
+        <button 
+          class="learn-tab" 
+          [class.active]="selectedLearnTab === 'Personal Finance'"
+          (click)="selectLearnTab('Personal Finance')">
+          Personal Finance
+        </button>
+        <button 
+          class="learn-tab" 
+          [class.active]="selectedLearnTab === 'Alternative Investment'"
+          (click)="selectLearnTab('Alternative Investment')">
+          Alternative Investment
+        </button>
+      </div>
+
+      <div class="learn-cards">
+        <a 
+          *ngFor="let course of getLearnCourses(); let i = index" 
+          [href]="course.url" 
+          target="_blank"
+          class="learn-card"
+          [ngClass]="getCardColor(i)">
+          <div class="learn-duration">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="8" cy="8" r="6"/>
+              <path d="M8 4v4l2 2"/>
+            </svg>
+            {{ course.duration }}
+          </div>
+          <div class="learn-illustration">
+            <svg viewBox="0 0 200 140" fill="none">
+              <circle cx="100" cy="70" r="50" fill="rgba(255,255,255,0.2)"/>
+              <rect x="80" y="50" width="40" height="40" rx="4" fill="rgba(255,255,255,0.3)"/>
+            </svg>
+          </div>
+          <div class="learn-level">
+            <span class="learn-badge">{{ course.level }}</span>
+            <span class="learn-enrolled">{{ course.enrolled }} ENROLLED</span>
+          </div>
+          <div class="learn-title">{{ course.title }}</div>
+          <div class="learn-description">
+            {{ course.description }}
+          </div>
+          <div class="learn-link-indicator">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 4l4 4-4 4"/>
+            </svg>
+            <span>Learn More</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- RIGHT: Index List & Portfolio Summary -->
+  <aside class="index-list">
+    <!-- Portfolio Summary -->
+    <div class="portfolio-summary" *ngIf="portfolioSummary.invested > 0">
+      <h3>Your Portfolio</h3>
+      <div class="portfolio-value">
+        <span class="portfolio-label">Total Value</span>
+        <span class="portfolio-amount">₹{{ portfolioSummary.totalValue | number:'1.0-0' }}</span>
+      </div>
+      <div class="portfolio-stats">
+        <div class="portfolio-stat">
+          <span class="stat-label-sm">Invested</span>
+          <span class="stat-value-sm">₹{{ portfolioSummary.invested | number:'1.0-0' }}</span>
+        </div>
+        <div class="portfolio-stat">
+          <span class="stat-label-sm">P&L</span>
+          <span class="stat-value-sm" [class.up]="portfolioSummary.pnl >= 0" [class.down]="portfolioSummary.pnl < 0">
+            {{ portfolioSummary.pnl >= 0 ? '+' : '' }}₹{{ portfolioSummary.pnl | number:'1.0-0' }}
+          </span>
+        </div>
+      </div>
+      <div class="portfolio-pnl" [class.up]="portfolioSummary.pnl >= 0" [class.down]="portfolioSummary.pnl < 0">
+        {{ portfolioSummary.pnl >= 0 ? '▲' : '▼' }} {{ portfolioSummary.pnl >= 0 ? '+' : '' }}{{ portfolioSummary.pnlPercent | number:'1.2-2' }}%
+      </div>
+      <a routerLink="/portfolio" class="view-portfolio-btn">View Portfolio →</a>
+    </div>
+
+    <!-- Market Indices -->
+    <h3>Market Indices</h3>
+    <div
+      class="index-item"
+      *ngFor="let idx of indices"
+      (click)="selectIndex(idx)"
+      [class.active]="idx.name === selectedIndex.name">
+      <div class="index-name">{{ idx.name }}</div>
+      <div class="index-meta">
+        <span class="price-value">{{ idx.price | number:'1.2-2' }}</span>
+        <span class="change-value"
+          [class.up]="idx.change >= 0"
+          [class.down]="idx.change < 0">
+          {{ idx.change >= 0 ? '+' : '' }}{{ idx.percent | number:'1.2-2' }}%
+        </span>
+      </div>
+    </div>
+  </aside>
+
+</main>
+
+<footer class="footer">
+  © 2026 <span class="brand-name">Bullseye Broking Pvt. Ltd. · </span>All rights reserved · Made by Savan · For educational purpose only 
+</footer>
+
+<!-- Stock Modal -->
+<app-stock-modal
+  [symbol]="selectedStockSymbol"
+  [isOpen]="isStockModalOpen"
+  (close)="closeStockModal()"
+  (viewFullDetails)="onViewFullDetails($event)">
+</app-stock-modal>

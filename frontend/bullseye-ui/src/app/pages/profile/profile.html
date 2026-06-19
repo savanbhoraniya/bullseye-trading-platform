@@ -1,0 +1,371 @@
+<div class="profile-page">
+
+  <!-- Sidebar -->
+  <aside class="profile-sidebar">
+    <div class="user-block">
+      <div class="avatar-circle">{{ userInitials }}</div>
+      <div class="user-info">
+        <div class="user-name">{{ userEmail }}</div>
+        <div class="user-role">Trader · Active</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button
+        *ngFor="let item of sidebarItems"
+        class="sidebar-item"
+        [class.active]="activeSection === item.id"
+        (click)="setActiveSection(item.id)">
+        <span class="item-icon" [innerHTML]="item.icon"></span>
+        {{ item.title }}
+      </button>
+    </nav>
+
+    <div class="sidebar-divider"></div>
+
+    <button class="sidebar-item logout-item" (click)="logout()">
+      <span class="item-icon">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3"/>
+          <path d="M10 11l3-3-3-3"/>
+          <line x1="13" y1="8" x2="6" y2="8"/>
+        </svg>
+      </span>
+      Logout
+    </button>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="profile-main">
+
+    <!-- Account Balance -->
+    <section *ngIf="activeSection === 'balance'" class="content-section">
+      <div class="profile-card">
+
+        <div class="balance-hero">
+          <div class="balance-label">Available Balance</div>
+          <div class="balance-amount" *ngIf="!isLoadingBalance">
+            <span class="currency">₹</span>{{ balance | number:'1.0-0' }}
+          </div>
+          <div class="balance-amount" *ngIf="isLoadingBalance">
+            <span style="font-size:16px; color:#999;">Loading...</span>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-add" (click)="showAddFunds = !showAddFunds; showWithdraw = false; addError = ''">
+            + Add Funds
+          </button>
+          <button class="btn-withdraw" (click)="showWithdraw = !showWithdraw; showAddFunds = false; withdrawError = ''">
+            − Withdraw
+          </button>
+        </div>
+
+        <div *ngIf="showAddFunds" class="funds-form">
+          <input [(ngModel)]="addAmount" type="number" placeholder="Enter amount to add" />
+          <button class="btn-add" (click)="addFunds()" [disabled]="isAddingFunds">
+            {{ isAddingFunds ? 'Adding...' : 'Confirm Add' }}
+          </button>
+        </div>
+        <div *ngIf="addError" class="funds-error">⚠ {{ addError }}</div>
+
+        <div *ngIf="showWithdraw" class="funds-form">
+          <input [(ngModel)]="withdrawAmount" type="number" placeholder="Enter amount to withdraw" />
+          <button class="btn-withdraw" (click)="withdrawFunds()" [disabled]="isWithdrawing">
+            {{ isWithdrawing ? 'Processing...' : 'Confirm Withdraw' }}
+          </button>
+        </div>
+        <div *ngIf="withdrawError" class="funds-error">⚠ {{ withdrawError }}</div>
+
+        <div class="stats-row">
+
+  <div class="stat-box">
+
+    <div class="stat-label">
+      Invested
+    </div>
+
+    <div class="stat-value">
+
+      ₹{{ totalInvested | number:'1.0-0' }}
+
+    </div>
+
+  </div>
+
+  <div class="stat-box">
+
+    <div class="stat-label">
+      Today's P&L
+    </div>
+
+    <div
+      class="stat-value"
+      [class.up]="todayPnL >= 0"
+      [class.down]="todayPnL < 0">
+
+      {{ todayPnL >= 0 ? '+' : '' }}
+
+      ₹{{ todayPnL | number:'1.0-0' }}
+
+    </div>
+
+  </div>
+
+  <div class="stat-box">
+
+    <div class="stat-label">
+      Total P&L
+    </div>
+
+    <div
+      class="stat-value"
+      [class.up]="totalPnL >= 0"
+      [class.down]="totalPnL < 0">
+
+      {{ totalPnL >= 0 ? '+' : '' }}
+
+      ₹{{ totalPnL | number:'1.0-0' }}
+
+    </div>
+
+  </div>
+
+</div>
+      </div>
+    </section>
+
+    <!-- Personal Information -->
+    <section *ngIf="activeSection === 'personal'" class="content-section">
+      <div class="profile-card">
+        <h2 class="card-title">Personal Information</h2>
+        <div class="info-grid">
+          <div class="field">
+            <label>Full Name</label>
+            <input [(ngModel)]="fullName" [disabled]="!editMode" />
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input [value]="userEmail" disabled />
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input [(ngModel)]="phone" [disabled]="!editMode" />
+          </div>
+          <div class="field">
+            <label>Member Since</label>
+            <input value="March 2026" disabled />
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-primary" *ngIf="!editMode" (click)="toggleEdit()">Edit Profile</button>
+          <button class="btn-primary" *ngIf="editMode"  (click)="toggleEdit()">Save Changes</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Transaction History -->
+    <section *ngIf="activeSection === 'transactions'" class="content-section">
+      <div class="profile-card">
+        <h2 class="card-title">Transaction History</h2>
+        <div class="table-wrap">
+          <table class="tx-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="isLoadingTransactions">
+                <td colspan="4" style="text-align:center; padding:24px; color:#999;">
+                  Loading transactions...
+                </td>
+              </tr>
+              <tr *ngIf="!isLoadingTransactions && transactions.length === 0">
+                <td colspan="4" style="text-align:center; padding:24px; color:#999;">
+                  No transactions yet.
+                </td>
+              </tr>
+              <tr *ngFor="let tx of transactions">
+                <td>{{ tx.date }}</td>
+                <td><span class="badge" [ngClass]="tx.type.toLowerCase()">{{ tx.type }}</span></td>
+                <td [class.credit]="tx.amount.startsWith('+')" [class.debit]="tx.amount.startsWith('-')">
+                  {{ tx.amount }}
+                </td>
+                <td><span class="badge success">{{ tx.status }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bank Account -->
+    <section *ngIf="activeSection === 'bank'" class="content-section">
+      <div class="profile-card">
+        <h2 class="card-title">Bank Account</h2>
+
+        <div *ngIf="isLoadingBank" style="text-align:center; padding:32px; color:#999;">
+          Loading bank account...
+        </div>
+
+        <div *ngIf="bankSuccess" class="funds-success">✓ {{ bankSuccess }}</div>
+        <div *ngIf="bankError" class="funds-error">⚠ {{ bankError }}</div>
+
+        <!-- Bank account exists -->
+        <div *ngIf="!isLoadingBank && bankAccount" class="bank-card">
+          <div class="bank-card-header">
+            <div class="bank-logo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <rect x="2" y="8" width="20" height="12" rx="2"/>
+                <path d="M2 12h20"/>
+                <path d="M7 8V6a5 5 0 0110 0v2"/>
+              </svg>
+            </div>
+            <div>
+              <div class="bank-name">{{ bankAccount.bankName }}</div>
+              <div class="bank-status">Linked · Verified</div>
+            </div>
+          </div>
+
+          <div class="bank-details">
+            <div class="bank-detail-row">
+              <span class="bank-detail-label">Account Holder</span>
+              <span class="bank-detail-value">{{ bankAccount.accountHolder }}</span>
+            </div>
+            <div class="bank-detail-row">
+              <span class="bank-detail-label">Account Number</span>
+              <span class="bank-detail-value">
+                ●●●● ●●●● {{ bankAccount.accountNumber | slice:-4 }}
+              </span>
+            </div>
+            <div class="bank-detail-row">
+              <span class="bank-detail-label">IFSC Code</span>
+              <span class="bank-detail-value">{{ bankAccount.ifscCode }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="!showRemoveConfirm">
+            <button class="btn-remove" (click)="showRemoveConfirm = true">
+              Remove Bank Account
+            </button>
+          </div>
+          <div *ngIf="showRemoveConfirm" class="remove-confirm">
+            <p>Are you sure you want to remove this bank account?</p>
+            <div class="remove-confirm-btns">
+              <button class="btn-remove" (click)="removeBankAccount()">Yes, Remove</button>
+              <button class="btn-primary" (click)="showRemoveConfirm = false">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- No bank account -->
+        <div *ngIf="!isLoadingBank && !bankAccount && !showAddBank" class="bank-empty">
+          <svg viewBox="0 0 48 48" fill="none" stroke="#ddd" stroke-width="1.5">
+            <rect x="4" y="16" width="40" height="26" rx="3"/>
+            <path d="M4 24h40"/>
+            <path d="M14 16V12a10 10 0 0120 0v4"/>
+          </svg>
+          <p>No bank account linked yet</p>
+          <button class="btn-primary" (click)="showAddBank = true">
+            + Link Bank Account
+          </button>
+        </div>
+
+        <!-- Add bank account form -->
+        <div *ngIf="!isLoadingBank && !bankAccount && showAddBank" class="bank-form">
+          <div class="info-grid">
+            <div class="field">
+              <label>Bank Name</label>
+              <input [(ngModel)]="bankName" placeholder="e.g. HDFC Bank" />
+            </div>
+            <div class="field">
+              <label>Account Holder Name</label>
+              <input [(ngModel)]="accountHolder" placeholder="As per bank records" />
+            </div>
+            <div class="field">
+              <label>Account Number</label>
+              <input [(ngModel)]="accountNumber" placeholder="Enter account number" />
+            </div>
+            <div class="field">
+              <label>IFSC Code</label>
+              <input [(ngModel)]="ifscCode" placeholder="e.g. HDFC0001234"
+                     maxlength="11"
+                     (input)="ifscCode = ifscCode.toUpperCase()" />
+            </div>
+          </div>
+          <div class="card-actions" style="display:flex; gap:10px;">
+            <button class="btn-primary" (click)="addBankAccount()" [disabled]="isSubmittingBank">
+              {{ isSubmittingBank ? 'Linking...' : 'Link Account' }}
+            </button>
+            <button class="btn-cancel" (click)="showAddBank = false; resetBankForm()">
+              Cancel
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Statements -->
+    <section *ngIf="activeSection === 'statements'" class="content-section">
+      <div class="profile-card">
+        <h2 class="card-title">Download Statements</h2>
+        <div class="statements-grid">
+          <button class="statement-btn" (click)="downloadTradeHistory()">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M4 4h8l4 4v8a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z"/>
+              <path d="M12 4v4h4"/>
+            </svg>
+            Trade History Report (PDF)
+          </button>
+          <button class="statement-btn" (click)="downloadAccountStatement()">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+              <rect x="3" y="5" width="14" height="10" rx="1"/>
+              <path d="M7 9h6M7 13h4"/>
+            </svg>
+            Account Statement (PDF)
+          </button>
+          <button class="statement-btn" (click)="downloadPnLReport()">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+              <polyline points="4 14 8 10 12 12 16 7"/>
+              <rect x="3" y="3" width="14" height="14" rx="1"/>
+            </svg>
+            P&L Report (PDF)
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Change Password -->
+    <section *ngIf="activeSection === 'password'" class="content-section">
+      <div class="profile-card">
+        <h2 class="card-title">Change Password</h2>
+        <div class="password-form">
+          <div class="field">
+            <label>Current Password</label>
+            <input [(ngModel)]="currentPassword" name="current"
+                   type="password" placeholder="••••••••" />
+          </div>
+          <div class="field">
+            <label>New Password</label>
+            <input [(ngModel)]="newPassword" name="new"
+                   type="password" placeholder="••••••••" />
+          </div>
+          <div class="field">
+            <label>Confirm New Password</label>
+            <input [(ngModel)]="confirmPassword" name="confirm"
+                   type="password" placeholder="••••••••" />
+          </div>
+          <div *ngIf="passwordError"   class="funds-error">⚠ {{ passwordError }}</div>
+          <div *ngIf="passwordSuccess" class="funds-success">✓ {{ passwordSuccess }}</div>
+          <button class="btn-primary" (click)="changePassword()">Update Password</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>

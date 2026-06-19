@@ -1,0 +1,259 @@
+<div class="watchlist-page">
+
+  <div class="watchlist-layout">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+
+      <!-- Header -->
+      <div class="panel-header">
+        <div>
+          <h1 class="page-title">My Watchlist</h1>
+          <p class="page-sub">{{ watchlist.length }} stocks · Prices update every 5s</p>
+        </div>
+        <button class="add-btn" (click)="showAddModal = true; searchQuery = ''; filteredStocks = []">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="7" y1="1" x2="7" y2="13"/>
+            <line x1="1" y1="7" x2="13" y2="7"/>
+          </svg>
+          Add Stock
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="search-bar">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+          <circle cx="7" cy="7" r="4"/>
+          <path d="M10 10l3 3"/>
+        </svg>
+        <input [(ngModel)]="listSearch" placeholder="Search your watchlist..." />
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="loading-state">Loading...</div>
+
+      <!-- Empty -->
+      <div *ngIf="!isLoading && watchlist.length === 0" class="empty-state">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#ddd" stroke-width="1.5">
+          <path d="M24 4L29.5 16.5L44 18.5L34 28L36.5 44L24 37L11.5 44L14 28L4 18.5L18.5 16.5L24 4Z"/>
+        </svg>
+        <p>Your watchlist is empty</p>
+        <button class="add-btn" (click)="showAddModal = true; filteredStocks = []">+ Add your first stock</button>
+      </div>
+
+      <!-- Stock List -->
+      <div class="stock-list" *ngIf="!isLoading && watchlist.length > 0">
+
+        <!-- Table Header -->
+        <div class="list-header">
+          <span>Stock</span>
+          <span>Price</span>
+          <span>Change</span>
+          <span>Actions</span>
+        </div>
+
+        <!-- Stock Rows -->
+        <div
+          class="stock-row"
+          *ngFor="let stock of filteredWatchlist"
+          (click)="selectStock(stock)"
+          [class.active]="selectedStock?.symbol === stock.symbol">
+
+          <div class="stock-info">
+            <div class="stock-sym">{{ stock.symbol }}</div>
+            <div class="stock-co">{{ stock.companyName }}</div>
+          </div>
+
+          <div class="stock-price">₹{{ stock.price | number:'1.2-2' }}</div>
+
+          <div class="stock-change">
+            <span class="chg-badge" [class.up]="stock.changePercent >= 0" [class.dn]="stock.changePercent < 0">
+              {{ stock.changePercent >= 0 ? '▲' : '▼' }}
+              {{ stock.changePercent >= 0 ? '+' : '' }}{{ stock.changePercent | number:'1.2-2' }}%
+            </span>
+          </div>
+
+          <div class="stock-actions">
+            <button class="detail-btn" [routerLink]="['/stock', stock.symbol]" (click)="$event.stopPropagation()" title="View stock details">
+              📈
+            </button>
+            <button class="buy-btn" (click)="selectStock(stock); $event.stopPropagation()">Buy</button>
+            <button class="rm-btn" (click)="removeStock($event, stock.symbol)">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="1" y1="1" x2="11" y2="11"/>
+                <line x1="11" y1="1" x2="1" y2="11"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL — Stock Detail + Buy -->
+    <div class="right-panel" *ngIf="selectedStock">
+      <div class="detail-card">
+
+        <div class="detail-top">
+          <div class="detail-sym">{{ selectedStock.symbol }}</div>
+          <div class="detail-co">{{ selectedStock.companyName }}</div>
+          <div class="detail-price">₹{{ selectedStock.price | number:'1.2-2' }}</div>
+          <div class="detail-chg" [class.up]="selectedStock.changePercent >= 0" [class.dn]="selectedStock.changePercent < 0">
+            {{ selectedStock.changePercent >= 0 ? '▲' : '▼' }}
+            {{ selectedStock.changePercent >= 0 ? '+' : '' }}{{ selectedStock.changePercent | number:'1.2-2' }}% today
+          </div>
+        </div>
+
+        <div class="detail-divider"></div>
+
+        <div class="detail-stats">
+          <div class="stat-row">
+            <span class="stat-label">Open</span>
+            <span class="stat-val">₹{{ selectedStock.open | number:'1.2-2' }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Day High</span>
+            <span class="stat-val up">₹{{ selectedStock.dayHigh | number:'1.2-2' }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Day Low</span>
+            <span class="stat-val down">₹{{ selectedStock.dayLow | number:'1.2-2' }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">52W High</span>
+            <span class="stat-val up">₹{{ selectedStock.high52w | number:'1.2-2' }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">52W Low</span>
+            <span class="stat-val down">₹{{ selectedStock.low52w | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <div class="detail-divider"></div>
+
+        <!-- Buy Section -->
+        <div class="buy-section">
+          <div class="buy-title">Buy {{ selectedStock.symbol }}</div>
+
+          <!-- Order Type Toggle -->
+          <div class="order-type-toggle">
+            <button 
+              class="toggle-btn" 
+              [class.active]="orderType === 'MARKET'"
+              (click)="setOrderType('MARKET')">
+              Market
+            </button>
+            <button 
+              class="toggle-btn" 
+              [class.active]="orderType === 'LIMIT'"
+              (click)="setOrderType('LIMIT')">
+              Limit
+            </button>
+          </div>
+
+          <div class="buy-field">
+            <label>Quantity</label>
+            <input
+              [(ngModel)]="buyQuantity"
+              type="number"
+              min="1"
+              placeholder="Enter quantity"
+              (input)="calculateTotal()" />
+          </div>
+
+          <div class="buy-field" *ngIf="orderType === 'LIMIT'">
+            <label>Limit Price</label>
+            <input
+              [(ngModel)]="limitPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Enter limit price"
+              (input)="calculateTotal()" />
+          </div>
+
+          <div class="total-box">
+            <span class="total-label">Total Cost</span>
+            <span class="total-val">₹{{ totalCost | number:'1.2-2' }}</span>
+          </div>
+
+          <div *ngIf="orderType === 'LIMIT'" class="order-info">
+            ℹ️ Limit order will execute when market price reaches your limit price
+          </div>
+
+          <div *ngIf="buyError" class="buy-error">⚠ {{ buyError }}</div>
+          <div *ngIf="buySuccess" class="buy-success">✓ {{ buySuccess }}</div>
+
+          <button
+            class="confirm-btn"
+            (click)="confirmBuy()"
+            [disabled]="isBuying || !buyQuantity || buyQuantity <= 0 || (orderType === 'LIMIT' && (!limitPrice || limitPrice <= 0))">
+            {{ isBuying ? 'Processing...' : (orderType === 'MARKET' ? 'Buy at Market' : 'Place Limit Order') }}
+          </button>
+
+          <div class="balance-info">
+            Available Balance: ₹{{ availableBalance | number:'1.0-0' }}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL — No stock selected -->
+    <div class="right-panel" *ngIf="!selectedStock && !isLoading && watchlist.length > 0">
+      <div class="detail-card empty-detail">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#ddd" stroke-width="1.5">
+          <path d="M24 4L29.5 16.5L44 18.5L34 28L36.5 44L24 37L11.5 44L14 28L4 18.5L18.5 16.5L24 4Z"/>
+        </svg>
+        <p>Click a stock to view details & buy</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== ADD STOCK MODAL ===== -->
+  <div class="modal-overlay" *ngIf="showAddModal" (click)="showAddModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add Stock to Watchlist</h3>
+        <button class="modal-close" (click)="showAddModal = false">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="1" y1="1" x2="11" y2="11"/>
+            <line x1="11" y1="1" x2="1" y2="11"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-search">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+          <circle cx="7" cy="7" r="4"/>
+          <path d="M10 10l3 3"/>
+        </svg>
+        <input
+          [(ngModel)]="searchQuery"
+          (input)="filterStocks()"
+          placeholder="Search by symbol or company name..."
+          autofocus />
+      </div>
+      <div class="search-results">
+        <div
+          class="result-item"
+          *ngFor="let stock of filteredStocks"
+          (click)="addStock(stock)">
+          <div>
+            <div class="result-sym">{{ stock.symbol }}</div>
+            <div class="result-co">{{ stock.companyName }}</div>
+          </div>
+          <button class="add-stock-btn">+ Add</button>
+        </div>
+        <div *ngIf="filteredStocks.length === 0 && searchQuery.length > 0" class="no-results">
+          No stocks found for "{{ searchQuery }}"
+        </div>
+        <div *ngIf="searchQuery.length === 0" class="search-hint">
+          Type to search NSE stocks
+        </div>
+      </div>
+      <div *ngIf="addError" class="modal-error">⚠ {{ addError }}</div>
+    </div>
+  </div>
+
+</div>

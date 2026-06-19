@@ -1,0 +1,548 @@
+<div class="stock-detail-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <!-- Stock Info Card with Back Button Inside -->
+    <div class="stock-info-card" *ngIf="stockDetail">
+      <!-- Back Button (Inside Card, Left Side) -->
+      <button class="back-btn" (click)="goBack()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      
+      <!-- Stock Details -->
+      <div class="stock-details">
+        <div class="stock-title-section">
+          <h1 class="stock-name">{{ stockDetail.name || symbol }}</h1>
+          <span class="stock-symbol">NSE: {{ symbol }}</span>
+        </div>
+        
+        <div class="stock-price-section">
+          <div class="current-price">{{ formatPrice(stockDetail.currentPrice) }}</div>
+          <div class="price-change" [ngClass]="getChangeClass()">
+            <span class="change-icon">{{ stockDetail.change >= 0 ? '▲' : '▼' }}</span>
+            <span class="change-amount">{{ formatPrice(Math.abs(stockDetail.change)) }}</span>
+            <span class="change-percent">({{ (stockDetail.percentChange || 0).toFixed(2) }}%)</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Watchlist Button (Right Side) -->
+      <button 
+        class="watchlist-btn"
+        [class.active]="isInWatchlist"
+        (click)="toggleWatchlist()"
+        [disabled]="isProcessing"
+        [title]="isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                [attr.fill]="isInWatchlist ? 'currentColor' : 'none'"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading stock details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Main Content Layout -->
+  <div *ngIf="!loading && !error && stockDetail" class="main-layout">
+    
+    <!-- Left Side: Chart -->
+    <div class="left-panel">
+      
+      <!-- Chart Controls -->
+      <div class="chart-header">
+        <!-- Period Buttons (Left) -->
+        <div class="period-buttons-left">
+          <button 
+            *ngFor="let period of periods" 
+            class="period-btn"
+            [class.active]="selectedPeriod === period"
+            (click)="changePeriod(period)">
+            {{ period }}
+          </button>
+        </div>
+
+        <!-- Chart Type Toggle (Right) -->
+        <div class="chart-type-toggle">
+          <button 
+            class="chart-type-btn" 
+            [class.active]="chartType === 'line'"
+            (click)="changeChartType('line')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            Line
+          </button>
+          <button 
+            class="chart-type-btn" 
+            [class.active]="chartType === 'candlestick'"
+            (click)="changeChartType('candlestick')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="2" x2="12" y2="6"></line>
+              <line x1="12" y1="18" x2="12" y2="22"></line>
+              <rect x="8" y="6" width="8" height="12"></rect>
+            </svg>
+            Candle
+          </button>
+        </div>
+      </div>
+      
+      <!-- Chart Container -->
+      <div class="chart-container">
+        <apx-chart
+          [series]="chartOptions.series!"
+          [chart]="chartOptions.chart!"
+          [xaxis]="chartOptions.xaxis!"
+          [yaxis]="chartOptions.yaxis!"
+          [tooltip]="chartOptions.tooltip!"
+          [grid]="chartOptions.grid!"
+          [dataLabels]="chartOptions.dataLabels!"
+          [stroke]="chartOptions.stroke!"
+          [colors]="chartOptions.colors!">
+        </apx-chart>
+      </div>
+
+      <!-- Tabbed Content Below Chart -->
+      <div class="content-tabs-section">
+        
+        <!-- Tab Navigation -->
+        <div class="content-tabs">
+          <button 
+            class="content-tab"
+            [class.active]="activeContentTab === 'overview'"
+            (click)="setActiveContentTab('overview')">
+            Overview
+          </button>
+          <button 
+            class="content-tab"
+            [class.active]="activeContentTab === 'depth'"
+            (click)="setActiveContentTab('depth')">
+            Market Depth
+          </button>
+          <button 
+            class="content-tab"
+            [class.active]="activeContentTab === 'news'"
+            (click)="setActiveContentTab('news')">
+            News
+          </button>
+          <button 
+            class="content-tab"
+            [class.active]="activeContentTab === 'actions'"
+            (click)="setActiveContentTab('actions')">
+            Corporate Actions
+          </button>
+          <button 
+            class="content-tab"
+            [class.active]="activeContentTab === 'financials'"
+            (click)="setActiveContentTab('financials')">
+            Financials
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          
+          <!-- Overview Tab -->
+          <div class="tab-pane" *ngIf="activeContentTab === 'overview'">
+            <h3 class="tab-title">Key Statistics</h3>
+            
+            <!-- Range Bars Container (Side by Side) -->
+            <div class="range-sections-container">
+              <!-- Day Range Bar -->
+              <div class="range-section">
+                <div class="range-header">
+                  <span class="range-label">Day Range</span>
+                  <span class="range-current">₹{{ formatNumber(stockDetail.currentPrice) }}</span>
+                </div>
+                <div class="range-bar-container">
+                  <div class="range-bar">
+                    <div class="range-fill" [style.width.%]="getDayRangePercentage()"></div>
+                    <div class="range-indicator" [style.left.%]="getDayRangePercentage()">
+                      <div class="indicator-dot"></div>
+                    </div>
+                  </div>
+                  <div class="range-labels">
+                    <span class="range-min">₹{{ formatNumber(stockDetail.low) }}</span>
+                    <span class="range-max">₹{{ formatNumber(stockDetail.high) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 52 Week Range Bar -->
+              <div class="range-section">
+                <div class="range-header">
+                  <span class="range-label">52 Week Range</span>
+                  <span class="range-current">₹{{ formatNumber(stockDetail.currentPrice) }}</span>
+                </div>
+                <div class="range-bar-container">
+                  <div class="range-bar week-52">
+                    <div class="range-fill" [style.width.%]="get52WeekRangePercentage()"></div>
+                    <div class="range-indicator" [style.left.%]="get52WeekRangePercentage()">
+                      <div class="indicator-dot"></div>
+                    </div>
+                  </div>
+                  <div class="range-labels">
+                    <span class="range-min">₹{{ formatNumber(stockDetail.fiftyTwoWeekLow) }}</span>
+                    <span class="range-max">₹{{ formatNumber(stockDetail.fiftyTwoWeekHigh) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fundamentals Table -->
+            <div class="fundamentals-table">
+              <div class="fundamentals-row">
+                <div class="fund-cell">
+                  <span class="fund-label">Prev. Close</span>
+                  <span class="fund-value">{{ formatPrice(stockDetail.previousClose) }}</span>
+                </div>
+                <div class="fund-cell">
+                  <span class="fund-label">Day High</span>
+                  <span class="fund-value positive">{{ formatPrice(stockDetail.high) }}</span>
+                </div>
+                <div class="fund-cell">
+                  <span class="fund-label">Day Low</span>
+                  <span class="fund-value negative">{{ formatPrice(stockDetail.low) }}</span>
+                </div>
+              </div>
+              <div class="fundamentals-row">
+                <div class="fund-cell">
+                  <span class="fund-label">Open</span>
+                  <span class="fund-value">{{ formatPrice(stockDetail.open) }}</span>
+                </div>
+                <div class="fund-cell">
+                  <span class="fund-label">Volume</span>
+                  <span class="fund-value">{{ formatVolume(stockDetail.volume) }}</span>
+                </div>
+                <div class="fund-cell">
+                  <span class="fund-label">Market Cap</span>
+                  <span class="fund-value">{{ formatVolume(stockDetail.marketCap) }}</span>
+                </div>
+              </div>
+              <div class="fundamentals-row">
+                <div class="fund-cell">
+                  <span class="fund-label">P/E Ratio</span>
+                  <span class="fund-value">{{ formatNumber(stockDetail.peRatio) }}</span>
+                </div>
+                <div class="fund-cell">
+                  <span class="fund-label">EPS</span>
+                  <span class="fund-value">₹{{ formatNumber(stockDetail.eps) }}</span>
+                </div>
+                <div class="fund-cell">
+                  <span class="fund-label">Book Value</span>
+                  <span class="fund-value">₹{{ formatNumber(stockDetail.bookValue) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Market Depth Tab -->
+          <div class="tab-pane" *ngIf="activeContentTab === 'depth' && marketDepth">
+            <h3 class="tab-title">Market Depth (Order Book)</h3>
+            <div class="depth-container">
+              <div class="depth-section buy-section">
+                <h4 class="depth-title buy-title">BUY ORDERS</h4>
+                <div class="depth-header">
+                  <span>Price</span>
+                  <span>Qty</span>
+                  <span>Orders</span>
+                </div>
+                <div class="depth-list">
+                  <div class="depth-row" *ngFor="let order of marketDepth.buyOrders">
+                    <span class="depth-price buy-price">{{ formatPrice(order.price) }}</span>
+                    <span class="depth-qty">{{ formatNumber(order.quantity) }}</span>
+                    <span class="depth-count">{{ order.orders }}</span>
+                  </div>
+                </div>
+                <div class="depth-total">
+                  <span>Total:</span>
+                  <span>{{ formatNumber(marketDepth.totalBuyQuantity) }}</span>
+                </div>
+              </div>
+
+              <div class="depth-section sell-section">
+                <h4 class="depth-title sell-title">SELL ORDERS</h4>
+                <div class="depth-header">
+                  <span>Price</span>
+                  <span>Qty</span>
+                  <span>Orders</span>
+                </div>
+                <div class="depth-list">
+                  <div class="depth-row" *ngFor="let order of marketDepth.sellOrders">
+                    <span class="depth-price sell-price">{{ formatPrice(order.price) }}</span>
+                    <span class="depth-qty">{{ formatNumber(order.quantity) }}</span>
+                    <span class="depth-count">{{ order.orders }}</span>
+                  </div>
+                </div>
+                <div class="depth-total">
+                  <span>Total:</span>
+                  <span>{{ formatNumber(marketDepth.totalSellQuantity) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- News Tab -->
+          <div class="tab-pane" *ngIf="activeContentTab === 'news'">
+            <h3 class="tab-title">Latest News</h3>
+            <div class="news-list" *ngIf="news.length > 0">
+              <div class="news-item" *ngFor="let item of news">
+                <div class="news-content">
+                  <h4 class="news-title">
+                    <a [href]="item.url" target="_blank">{{ item.title }}</a>
+                  </h4>
+                  <p class="news-description">{{ item.description }}</p>
+                  <div class="news-meta">
+                    <span class="news-source">{{ item.source }}</span>
+                    <span class="news-dot">·</span>
+                    <span class="news-date">{{ formatDate(item.publishedAt) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="empty-state" *ngIf="news.length === 0">
+              <p>No recent news available</p>
+            </div>
+          </div>
+
+          <!-- Corporate Actions Tab -->
+          <div class="tab-pane" *ngIf="activeContentTab === 'actions'">
+            <h3 class="tab-title">Corporate Actions</h3>
+            <div class="actions-container" *ngIf="corporateActions.length > 0">
+              <div class="actions-card">
+                <div class="action-row" *ngFor="let action of corporateActions; let last = last" [class.last-row]="last">
+                  <!-- Icon based on action type -->
+                  <div class="action-icon-small" [ngClass]="getActionClass(action.actionType)">
+                    <!-- Dividend Icon: Money/Dollar bill -->
+                    <svg *ngIf="getActionTypeLabel(action.actionType) === 'DIVIDEND' || getActionTypeLabel(action.actionType) === 'INTERIM DIVIDEND' || getActionTypeLabel(action.actionType) === 'SPECIAL DIVIDEND'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                      <circle cx="12" cy="12" r="3"></circle>
+                      <path d="M6 12h.01M18 12h.01"></path>
+                    </svg>
+                    <!-- AGM Icon: Bell -->
+                    <svg *ngIf="getActionTypeLabel(action.actionType) === 'ANNUAL GENERAL MEETING'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <!-- Bonus Icon: Gift box -->
+                    <svg *ngIf="getActionTypeLabel(action.actionType) === 'BONUS'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <rect x="3" y="8" width="18" height="12" rx="2"></rect>
+                      <path d="M12 8V20"></path>
+                      <path d="M3 12h18"></path>
+                      <path d="M7 8V6a2 2 0 0 1 2-2 2 2 0 0 1 2 2"></path>
+                      <path d="M17 8V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2"></path>
+                    </svg>
+                    <!-- Split Icon: Scissors -->
+                    <svg *ngIf="getActionTypeLabel(action.actionType) === 'SPLIT'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <circle cx="6" cy="6" r="3"></circle>
+                      <circle cx="6" cy="18" r="3"></circle>
+                      <path d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12"></path>
+                    </svg>
+                    <!-- Rights Icon: Key -->
+                    <svg *ngIf="getActionTypeLabel(action.actionType) === 'RIGHTS'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <circle cx="7" cy="7" r="4"></circle>
+                      <path d="M11 7h10M18 4l3 3-3 3"></path>
+                    </svg>
+                    <!-- Buyback Icon: Rotate arrow -->
+                    <svg *ngIf="getActionTypeLabel(action.actionType) === 'BUYBACK'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                      <path d="M21 3v5h-5"></path>
+                      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                      <path d="M3 21v-5h5"></path>
+                    </svg>
+                    <!-- Default Icon: Bell -->
+                    <svg *ngIf="getActionTypeLabel(action.actionType) !== 'DIVIDEND' && getActionTypeLabel(action.actionType) !== 'INTERIM DIVIDEND' && getActionTypeLabel(action.actionType) !== 'SPECIAL DIVIDEND' && getActionTypeLabel(action.actionType) !== 'ANNUAL GENERAL MEETING' && getActionTypeLabel(action.actionType) !== 'BONUS' && getActionTypeLabel(action.actionType) !== 'SPLIT' && getActionTypeLabel(action.actionType) !== 'RIGHTS' && getActionTypeLabel(action.actionType) !== 'BUYBACK'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                  </div>
+
+                  <!-- Content -->
+                  <div class="action-info">
+                    <div class="action-main">
+                      <span class="action-type-label" [ngClass]="getActionClass(action.actionType)">
+                        {{ getActionTypeLabel(action.actionType) }}
+                      </span>
+                      <span class="action-description-text">{{ action.description }}</span>
+                    </div>
+                    <div class="action-meta">
+                      <span class="action-date-text">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                          <line x1="16" y1="2" x2="16" y2="6"></line>
+                          <line x1="8" y1="2" x2="8" y2="6"></line>
+                          <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        Ex-Date: {{ formatDate(action.exDate) }}
+                      </span>
+                      <span class="action-detail-text" *ngIf="action.details">• {{ action.details }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="empty-state" *ngIf="corporateActions.length === 0">
+              <p>No recent corporate actions</p>
+            </div>
+          </div>
+
+          <!-- Financials Tab -->
+          <div class="tab-pane" *ngIf="activeContentTab === 'financials'">
+            <h3 class="tab-title">Financial Metrics</h3>
+            <div class="financials-grid">
+              <div class="financial-card">
+                <div class="financial-label">Market Cap</div>
+                <div class="financial-value">{{ formatVolume(stockDetail.marketCap) }}</div>
+              </div>
+              <div class="financial-card">
+                <div class="financial-label">P/E Ratio</div>
+                <div class="financial-value">{{ formatNumber(stockDetail.peRatio) }}</div>
+              </div>
+              <div class="financial-card">
+                <div class="financial-label">EPS</div>
+                <div class="financial-value">₹{{ formatNumber(stockDetail.eps) }}</div>
+              </div>
+              <div class="financial-card">
+                <div class="financial-label">52 Week Range</div>
+                <div class="financial-value">
+                  {{ formatPrice(stockDetail.fiftyTwoWeekLow) }} - {{ formatPrice(stockDetail.fiftyTwoWeekHigh) }}
+                </div>
+              </div>
+            </div>
+            <div class="financials-note">
+              <p>📊 More detailed financial data coming soon</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Buy/Sell Panel -->
+    <div class="right-panel">
+      <div class="trade-panel">
+        
+        <!-- Trade Tabs -->
+        <div class="trade-tabs">
+          <button 
+            class="trade-tab" 
+            [class.active]="activeTradeTab === 'BUY'"
+            (click)="setActiveTradeTab('BUY')">
+            BUY
+          </button>
+          <button 
+            class="trade-tab" 
+            [class.active]="activeTradeTab === 'SELL'"
+            (click)="setActiveTradeTab('SELL')">
+            SELL
+          </button>
+        </div>
+
+        <!-- Trade Form -->
+        <div class="trade-form">
+          
+          <!-- Order Type Toggle -->
+          <div class="order-type-section">
+            <label class="section-label">Order Type</label>
+            <div class="order-type-toggle">
+              <button 
+                class="toggle-btn" 
+                [class.active]="orderType === 'MARKET'"
+                (click)="setOrderType('MARKET')">
+                Market
+              </button>
+              <button 
+                class="toggle-btn" 
+                [class.active]="orderType === 'LIMIT'"
+                (click)="setOrderType('LIMIT')">
+                Limit
+              </button>
+            </div>
+          </div>
+
+          <!-- Quantity Input -->
+          <div class="trade-field">
+            <label>Quantity</label>
+            <input
+              [(ngModel)]="quantity"
+              type="number"
+              min="1"
+              placeholder="Enter quantity"
+              (input)="calculateTotalCost()" />
+          </div>
+
+          <!-- Limit Price (if LIMIT order) -->
+          <div class="trade-field" *ngIf="orderType === 'LIMIT'">
+            <label>Limit Price</label>
+            <input
+              [(ngModel)]="limitPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Enter limit price"
+              (input)="calculateTotalCost()" />
+          </div>
+
+          <!-- Price Info -->
+          <div class="price-info">
+            <div class="info-row">
+              <span>Current Price</span>
+              <span class="info-value">{{ formatPrice(stockDetail.currentPrice) }}</span>
+            </div>
+            <div class="info-row" *ngIf="orderType === 'LIMIT' && limitPrice">
+              <span>Limit Price</span>
+              <span class="info-value">{{ formatPrice(limitPrice) }}</span>
+            </div>
+          </div>
+
+          <!-- Total Cost -->
+          <div class="total-box">
+            <span class="total-label">Total {{ activeTradeTab === 'BUY' ? 'Cost' : 'Value' }}</span>
+            <span class="total-val">₹{{ totalCost | number:'1.2-2' }}</span>
+          </div>
+
+          <!-- Limit Order Info -->
+          <div *ngIf="orderType === 'LIMIT'" class="order-info">
+            ℹ️ Limit order will execute when market price reaches your limit price
+          </div>
+
+          <!-- Error/Success Messages -->
+          <div *ngIf="actionError" class="action-error">⚠ {{ actionError }}</div>
+          <div *ngIf="actionSuccess" class="action-success">✓ {{ actionSuccess }}</div>
+
+          <!-- Action Button -->
+          <button
+            class="trade-btn"
+            [class.buy-btn]="activeTradeTab === 'BUY'"
+            [class.sell-btn]="activeTradeTab === 'SELL'"
+            (click)="activeTradeTab === 'BUY' ? onBuy() : onSell()"
+            [disabled]="isProcessing || !quantity || quantity <= 0 || (orderType === 'LIMIT' && (!limitPrice || limitPrice <= 0))">
+            <span *ngIf="!isProcessing">
+              {{ activeTradeTab === 'BUY' ? (orderType === 'MARKET' ? 'Buy at Market' : 'Place Buy Order') : (orderType === 'MARKET' ? 'Sell at Market' : 'Place Sell Order') }}
+            </span>
+            <span *ngIf="isProcessing">Processing...</span>
+          </button>
+
+          <!-- Balance Info -->
+          <div class="balance-info" *ngIf="activeTradeTab === 'BUY'">
+            Available Balance: ₹{{ availableBalance | number:'1.0-0' }}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>

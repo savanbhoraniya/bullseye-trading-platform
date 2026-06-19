@@ -1,0 +1,267 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    
+    <!-- Close Button -->
+    <button class="close-btn" (click)="onClose()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 6l12 12M6 18L18 6"/>
+      </svg>
+    </button>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Loading stock details...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-state" *ngIf="error && !loading">
+      <p>{{ error }}</p>
+    </div>
+
+    <!-- Stock Content -->
+    <div class="modal-content" *ngIf="!loading && !error && stockDetail">
+      
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="stock-info">
+          <h2 class="stock-name">{{ stockDetail.name || symbol }}</h2>
+          <p class="stock-symbol">NSE: {{ symbol }}</p>
+        </div>
+        
+        <div class="stock-price">
+          <div class="current-price">{{ formatPrice(stockDetail.currentPrice) }}</div>
+          <div class="price-change" [ngClass]="getChangeClass()">
+            <span class="change-icon">{{ stockDetail.change >= 0 ? '▲' : '▼' }}</span>
+            <span class="change-value">{{ formatPrice(Math.abs(stockDetail.change)) }}</span>
+            <span class="change-percent">({{ (stockDetail.percentChange || 0).toFixed(2) }}%)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Section -->
+      <div class="chart-section">
+        <div class="chart-header">
+          <!-- Period Buttons (Left) -->
+          <div class="period-buttons-left">
+            <button 
+              *ngFor="let period of periods" 
+              class="period-btn"
+              [class.active]="selectedPeriod === period"
+              (click)="changePeriod(period)">
+              {{ period }}
+            </button>
+          </div>
+
+          <!-- Chart Type Toggle (Right) -->
+          <div class="chart-type-toggle">
+            <button 
+              class="chart-type-btn" 
+              [class.active]="chartType === 'line'"
+              (click)="changeChartType('line')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              Line
+            </button>
+            <button 
+              class="chart-type-btn" 
+              [class.active]="chartType === 'candlestick'"
+              (click)="changeChartType('candlestick')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="2" x2="12" y2="6"></line>
+                <line x1="12" y1="18" x2="12" y2="22"></line>
+                <rect x="8" y="6" width="8" height="12"></rect>
+              </svg>
+              Candle
+            </button>
+          </div>
+        </div>
+        
+        <div class="chart-container">
+          <apx-chart
+            [series]="chartOptions.series!"
+            [chart]="chartOptions.chart!"
+            [xaxis]="chartOptions.xaxis!"
+            [yaxis]="chartOptions.yaxis!"
+            [tooltip]="chartOptions.tooltip!"
+            [grid]="chartOptions.grid!"
+            [dataLabels]="chartOptions.dataLabels!"
+            [stroke]="chartOptions.stroke!"
+            [colors]="chartOptions.colors!">
+          </apx-chart>
+        </div>
+      </div>
+
+      <!-- Key Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Open</span>
+          <span class="stat-value">{{ formatPrice(stockDetail.open) }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">High</span>
+          <span class="stat-value positive">{{ formatPrice(stockDetail.high) }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Low</span>
+          <span class="stat-value negative">{{ formatPrice(stockDetail.low) }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Volume</span>
+          <span class="stat-value">{{ formatVolume(stockDetail.volume) }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">52W High</span>
+          <span class="stat-value">{{ formatPrice(stockDetail.fiftyTwoWeekHigh) }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">52W Low</span>
+          <span class="stat-value">{{ formatPrice(stockDetail.fiftyTwoWeekLow) }}</span>
+        </div>
+      </div>
+
+      <!-- Market Depth (Compact) -->
+      <div class="market-depth-compact" *ngIf="marketDepth">
+        <h3 class="section-title">Market Depth</h3>
+        <div class="depth-grid">
+          <div class="depth-column buy-column">
+            <div class="depth-header">BUY</div>
+            <div class="depth-row" *ngFor="let order of marketDepth.buyOrders?.slice(0, 3)">
+              <span class="depth-price buy">{{ formatPrice(order.price) }}</span>
+              <span class="depth-qty">{{ formatNumber(order.quantity) }}</span>
+            </div>
+            <div class="depth-total">
+              Total: {{ formatNumber(marketDepth.totalBuyQuantity) }}
+            </div>
+          </div>
+          
+          <div class="depth-column sell-column">
+            <div class="depth-header">SELL</div>
+            <div class="depth-row" *ngFor="let order of marketDepth.sellOrders?.slice(0, 3)">
+              <span class="depth-price sell">{{ formatPrice(order.price) }}</span>
+              <span class="depth-qty">{{ formatNumber(order.quantity) }}</span>
+            </div>
+            <div class="depth-total">
+              Total: {{ formatNumber(marketDepth.totalSellQuantity) }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buy/Sell Section -->
+      <div class="trade-section">
+        <div class="trade-tabs">
+          <button 
+            class="trade-tab" 
+            [class.active]="activeTab === 'BUY'"
+            (click)="setActiveTab('BUY')">
+            BUY
+          </button>
+          <button 
+            class="trade-tab" 
+            [class.active]="activeTab === 'SELL'"
+            (click)="setActiveTab('SELL')">
+            SELL
+          </button>
+        </div>
+
+        <div class="trade-form">
+          <!-- Order Type Toggle -->
+          <div class="order-type-toggle">
+            <button 
+              class="toggle-btn" 
+              [class.active]="orderType === 'MARKET'"
+              (click)="setOrderType('MARKET')">
+              Market
+            </button>
+            <button 
+              class="toggle-btn" 
+              [class.active]="orderType === 'LIMIT'"
+              (click)="setOrderType('LIMIT')">
+              Limit
+            </button>
+          </div>
+
+          <!-- Quantity Input -->
+          <div class="trade-field">
+            <label>Quantity</label>
+            <input
+              [(ngModel)]="quantity"
+              type="number"
+              min="1"
+              placeholder="Enter quantity"
+              (input)="calculateTotalCost()" />
+          </div>
+
+          <!-- Limit Price (if LIMIT order) -->
+          <div class="trade-field" *ngIf="orderType === 'LIMIT'">
+            <label>Limit Price</label>
+            <input
+              [(ngModel)]="limitPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Enter limit price"
+              (input)="calculateTotalCost()" />
+          </div>
+
+          <!-- Total Cost -->
+          <div class="total-box">
+            <span class="total-label">Total {{ activeTab === 'BUY' ? 'Cost' : 'Value' }}</span>
+            <span class="total-val">₹{{ totalCost | number:'1.2-2' }}</span>
+          </div>
+
+          <!-- Limit Order Info -->
+          <div *ngIf="orderType === 'LIMIT'" class="order-info">
+            ℹ️ Limit order will execute when market price reaches your limit price
+          </div>
+
+          <!-- Error/Success Messages -->
+          <div *ngIf="actionError" class="action-error">⚠ {{ actionError }}</div>
+          <div *ngIf="actionSuccess" class="action-success">✓ {{ actionSuccess }}</div>
+
+          <!-- Action Button -->
+          <button
+            class="trade-btn"
+            [class.buy-btn]="activeTab === 'BUY'"
+            [class.sell-btn]="activeTab === 'SELL'"
+            (click)="activeTab === 'BUY' ? onBuy() : onSell()"
+            [disabled]="isProcessing || !quantity || quantity <= 0 || (orderType === 'LIMIT' && (!limitPrice || limitPrice <= 0))">
+            <span *ngIf="!isProcessing">
+              {{ activeTab === 'BUY' ? (orderType === 'MARKET' ? 'Buy at Market' : 'Place Buy Order') : (orderType === 'MARKET' ? 'Sell at Market' : 'Place Sell Order') }}
+            </span>
+            <span *ngIf="isProcessing">Processing...</span>
+          </button>
+
+          <!-- Balance Info -->
+          <div class="balance-info" *ngIf="activeTab === 'BUY'">
+            Available Balance: ₹{{ availableBalance | number:'1.0-0' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Secondary Actions -->
+      <div class="secondary-actions">
+        <button 
+          class="secondary-btn watchlist-btn"
+          [class.active]="isInWatchlist"
+          (click)="toggleWatchlist()"
+          [disabled]="isProcessing">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                  [attr.fill]="isInWatchlist ? 'currentColor' : 'none'"/>
+          </svg>
+          {{ isInWatchlist ? 'In Watchlist' : 'Add to Watchlist' }}
+        </button>
+        <button class="secondary-btn" (click)="onViewFullDetails()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 5l7 7-7 7"/>
+          </svg>
+          View Full Details
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

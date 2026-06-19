@@ -1,0 +1,241 @@
+<header class="navbar" *ngIf="showNavbar">
+
+  <!-- LEFT: Brand -->
+  <a routerLink="/dashboard" class="brand">
+    <div class="logo">
+      <span class="logo-bulls">BULLS</span><span class="logo-eye">EYE</span>
+    </div>
+    <p class="tagline">TRADE LIKE A PRO</p>
+  </a>
+
+  <!-- MIDDLE LEFT: Global Search -->
+  <div class="global-search">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="8" cy="8" r="6"/>
+        <path d="M13 13l5 5"/>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Search stocks (min 2 letters)..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearchInput()"
+        (click)="$event.stopPropagation()"
+      />
+    </div>
+    
+    <!-- Search Results Dropdown -->
+    <div class="search-results" *ngIf="showSearchResults" (click)="$event.stopPropagation()">
+      <!-- Loading State -->
+      <div class="search-loading" *ngIf="searchLoading && searchResults.length === 0">
+        <div class="loading-spinner"></div>
+        <span>Searching...</span>
+      </div>
+      
+      <!-- Minimum character hint -->
+      <div class="search-hint" *ngIf="searchQuery.length === 1 && !searchLoading">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="6"/>
+          <path d="M8 5v3"/>
+          <circle cx="8" cy="11" r="0.5" fill="currentColor"/>
+        </svg>
+        Type at least 2 letters to search
+      </div>
+      
+      <!-- Results -->
+      <div class="search-result-item" *ngFor="let stock of searchResults" (click)="navigateToStock(stock.symbol)">
+        <div class="search-result-info">
+          <div class="search-result-symbol">{{ stock.symbol }}</div>
+          <div class="search-result-name">{{ stock.name }}</div>
+          <div class="search-result-industry" *ngIf="stock.industry">{{ stock.industry }}</div>
+        </div>
+        
+        <div class="search-result-price">
+          <div class="price" *ngIf="stock.price && stock.price > 0">₹{{ stock.price | number:'1.2-2' }}</div>
+          <div class="price unavailable" *ngIf="!stock.price || stock.price === 0">---</div>
+          <div class="change" [class.up]="stock.changePercent >= 0" [class.down]="stock.changePercent < 0" *ngIf="stock.price && stock.price > 0">
+            {{ stock.changePercent >= 0 ? '+' : '' }}{{ stock.changePercent | number:'1.2-2' }}%
+          </div>
+        </div>
+        
+        <!-- Success State (Added) -->
+        <button 
+          class="add-to-watchlist-btn success" 
+          *ngIf="addedStockSymbol === stock.symbol"
+          (click)="$event.stopPropagation()"
+          disabled>
+          <svg class="checkmark" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M3 8l3 3 7-7"/>
+          </svg>
+          Added!
+        </button>
+        
+        <!-- Default State (Add) -->
+        <button 
+          class="add-to-watchlist-btn" 
+          *ngIf="addedStockSymbol !== stock.symbol"
+          (click)="addToWatchlist(stock, $event)">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3v10M3 8h10"/>
+          </svg>
+          Add
+        </button>
+      </div>
+      <div class="search-no-results" *ngIf="searchResults.length === 0 && !searchLoading">
+        No stocks found
+      </div>
+    </div>
+
+    <!-- Success/Error Message (Only visible when dropdown is open) -->
+    <div class="search-message" *ngIf="searchMessage && showSearchResults">
+      {{ searchMessage }}
+    </div>
+  </div>
+
+  <!-- MIDDLE RIGHT: Live Market Ticker -->
+  <div class="market-ticker">
+    <div class="ticker-item">
+      <div class="ticker-info">
+        <span class="ticker-label">SENSEX</span>
+        <div class="ticker-row">
+          <span class="ticker-value" [class.flash-up]="sensexUp" [class.flash-down]="!sensexUp">
+            {{ sensex.value | number:'1.2-2' }}
+          </span>
+          <span class="ticker-change" [class.up]="sensexUp" [class.down]="!sensexUp">
+            {{ sensexUp ? '▲' : '▼' }} {{ sensex.change | number:'1.1-1' }} ({{ sensex.pct }}%)
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ticker-divider"></div>
+
+    <div class="ticker-item">
+      <div class="ticker-info">
+        <span class="ticker-label">NIFTY 50</span>
+        <div class="ticker-row">
+          <span class="ticker-value" [class.flash-up]="niftyUp" [class.flash-down]="!niftyUp">
+            {{ nifty.value | number:'1.2-2' }}
+          </span>
+          <span class="ticker-change" [class.up]="niftyUp" [class.down]="!niftyUp">
+            {{ niftyUp ? '▲' : '▼' }} {{ nifty.change | number:'1.1-1' }} ({{ nifty.pct }}%)
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Nav Links -->
+  <nav class="nav-right">
+    <a routerLink="/dashboard" routerLinkActive="nav-active" class="nav-link">
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7">
+        <rect x="2" y="2" width="6" height="6" rx="1"/>
+        <rect x="10" y="2" width="6" height="6" rx="1"/>
+        <rect x="2" y="10" width="6" height="6" rx="1"/>
+        <rect x="10" y="10" width="6" height="6" rx="1"/>
+      </svg>
+      Dashboard
+    </a>
+
+    <a routerLink="/watchlist" routerLinkActive="nav-active" class="nav-link">
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7">
+        <path d="M9 1.5L11.12 6.26L16.5 7.02L12.75 10.68L13.74 16.5L9 13.77L4.26 16.5L5.25 10.68L1.5 7.02L6.88 6.26L9 1.5Z"/>
+      </svg>
+      Watchlist
+    </a>
+
+    <a routerLink="/orders" routerLinkActive="nav-active" class="nav-link">
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7">
+        <rect x="2" y="4" width="14" height="11" rx="2"/>
+        <path d="M2 8h14"/>
+        <circle cx="6" cy="6" r="0.5" fill="currentColor"/>
+        <circle cx="9" cy="6" r="0.5" fill="currentColor"/>
+      </svg>
+      Orders
+    </a>
+
+    <a routerLink="/portfolio" routerLinkActive="nav-active" class="nav-link">
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7">
+        <rect x="2" y="7" width="14" height="9" rx="2"/>
+        <path d="M6 7V5a3 3 0 016 0v2"/>
+        <line x1="9" y1="10" x2="9" y2="13"/>
+        <line x1="7" y1="11.5" x2="11" y2="11.5"/>
+      </svg>
+      Portfolio
+    </a>
+
+    <!-- Profile + Dropdown -->
+    <div class="profile-menu" (click)="toggleDropdown($event)">
+      <div class="nav-link avatar-link" [class.nav-active]="dropdownOpen">
+        <div class="avatar-circle">{{ userInitials }}</div>
+        <span>Profile</span>
+        <svg class="chevron" [class.open]="dropdownOpen" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M1 1l4 4 4-4"/>
+        </svg>
+      </div>
+
+      <!-- Dropdown Menu -->
+      <div class="dropdown-menu" [class.visible]="dropdownOpen">
+        <div class="dropdown-header">
+          <div class="dropdown-avatar">{{ userInitials }}</div>
+          <div>
+            <div class="dropdown-name">{{ userName }}</div>
+            <div class="dropdown-role">{{ userEmail }}</div>
+          </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <a routerLink="/profile" class="dropdown-item" (click)="dropdownOpen = false; $event.stopPropagation()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="8" cy="5" r="3"/>
+            <path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5"/>
+          </svg>
+          My Profile
+        </a>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item logout-item" (click)="logout()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3"/>
+            <path d="M10 11l3-3-3-3"/>
+            <line x1="13" y1="8" x2="6" y2="8"/>
+          </svg>
+          Logout
+        </button>
+      </div>
+    </div>
+
+  </nav>
+</header>
+
+<!-- Scrolling Stock Ticker Bar -->
+<div class="stock-ticker-bar" *ngIf="showNavbar">
+  <div class="ticker-track">
+    <!-- First set of stocks -->
+    <div class="ticker-scroll">
+      <div class="ticker-stock" *ngFor="let stock of tickerStocks" (click)="navigateToStock(stock.symbol)">
+        <span class="ticker-stock-symbol">{{ stock.symbol }}</span>
+        <span class="ticker-stock-price">₹{{ stock.price | number:'1.2-2' }}</span>
+        <span class="ticker-stock-change" [class.up]="stock.changePercent >= 0" [class.down]="stock.changePercent < 0">
+          {{ stock.changePercent >= 0 ? '▲' : '▼' }} {{ stock.changePercent | number:'1.2-2' }}%
+        </span>
+      </div>
+    </div>
+    <!-- Duplicate set for seamless loop -->
+    <div class="ticker-scroll">
+      <div class="ticker-stock" *ngFor="let stock of tickerStocks" (click)="navigateToStock(stock.symbol)">
+        <span class="ticker-stock-symbol">{{ stock.symbol }}</span>
+        <span class="ticker-stock-price">₹{{ stock.price | number:'1.2-2' }}</span>
+        <span class="ticker-stock-change" [class.up]="stock.changePercent >= 0" [class.down]="stock.changePercent < 0">
+          {{ stock.changePercent >= 0 ? '▲' : '▼' }} {{ stock.changePercent | number:'1.2-2' }}%
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="main-content" [class.no-navbar]="!showNavbar" [class.with-ticker]="showNavbar">
+  <router-outlet></router-outlet>
+</main>
+
+<!-- Global Modal Component -->
+<app-modal></app-modal>

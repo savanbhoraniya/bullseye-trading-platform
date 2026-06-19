@@ -1,0 +1,343 @@
+<div class="portfolio-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">My Portfolio</h1>
+      <p class="page-sub">{{ portfolio.length }} holdings · Prices update every 5s</p>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">Loading your portfolio...</div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && portfolio.length === 0" class="empty-state">
+    <svg viewBox="0 0 48 48" fill="none" stroke="#ddd" stroke-width="1.5">
+      <rect x="4" y="10" width="40" height="28" rx="3"/>
+      <path d="M4 18h40"/>
+      <path d="M16 10V6M32 10V6"/>
+    </svg>
+    <p>No holdings yet</p>
+    <p style="font-size:12px; color:#bbb;">Buy stocks from your Watchlist to get started</p>
+  </div>
+
+  <!-- Portfolio Content -->
+  <div *ngIf="!isLoading && portfolio.length > 0">
+
+    <!-- Summary Cards -->
+    <div class="summary-row">
+      <div class="summary-card">
+        <div class="s-label">Total Invested</div>
+        <div class="s-value">₹{{ totalInvested | number:'1.0-0' }}</div>
+        <div class="s-sub">Across {{ portfolio.length }} stocks</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-label">Current Value</div>
+        <div class="s-value">₹{{ currentValue | number:'1.0-0' }}</div>
+        <div class="s-sub">Live prices</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-label">Total P&L</div>
+        <div class="s-value" [class.up]="totalPnL >= 0" [class.dn]="totalPnL < 0">
+          {{ totalPnL >= 0 ? '+' : '' }}₹{{ totalPnL | number:'1.0-0' }}
+        </div>
+        <div class="s-sub" [class.up]="totalPnLPercent >= 0" [class.dn]="totalPnLPercent < 0">
+          {{ totalPnLPercent >= 0 ? '+' : '' }}{{ totalPnLPercent | number:'1.2-2' }}% returns
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="s-label">Today's P&L</div>
+        <div class="s-value" [class.up]="todayPnL >= 0" [class.dn]="todayPnL < 0">
+          {{ todayPnL >= 0 ? '+' : '' }}₹{{ todayPnL | number:'1.0-0' }}
+        </div>
+        <div class="s-sub" [class.up]="todayPnL >= 0" [class.dn]="todayPnL < 0">
+          {{ todayPnL >= 0 ? '+' : '' }}{{ todayPnLPercent | number:'1.2-2' }}% today
+        </div>
+      </div>
+    </div>
+
+    <!-- Analysis Button -->
+    <div class="analysis-button-container">
+      <button class="analysis-btn" (click)="openAnalysisModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2z"/>
+          <path d="M15 9v10a2 2 0 002 2h2a2 2 0 002-2V9a2 2 0 00-2-2h-2a2 2 0 00-2 2z"/>
+          <path d="M9 3v6a2 2 0 002 2h2a2 2 0 002-2V3a2 2 0 00-2-2h-2a2 2 0 00-2 2z"/>
+        </svg>
+        View Portfolio Analysis
+      </button>
+    </div>
+
+    <!-- Holdings Table -->
+    <div class="holdings-card">
+      <div class="holdings-header">
+        <span class="holdings-title">Holdings</span>
+      </div>
+
+      <div class="table-head">
+        <span>Stock</span>
+        <span class="sortable" (click)="sortBy('quantity')">
+          Qty
+          <span class="sort-indicator" *ngIf="sortColumn === 'quantity'">
+            {{ sortDir === 'asc' ? '↑' : '↓' }}
+          </span>
+        </span>
+        <span>Avg Buy</span>
+        <span>Current</span>
+        <span class="sortable" (click)="sortBy('totalInvested')">
+          Invested
+          <span class="sort-indicator" *ngIf="sortColumn === 'totalInvested'">
+            {{ sortDir === 'asc' ? '↑' : '↓' }}
+          </span>
+        </span>
+        <span class="sortable" (click)="sortBy('pnl')">
+          P&L
+          <span class="sort-indicator" *ngIf="sortColumn === 'pnl'">
+            {{ sortDir === 'asc' ? '↑' : '↓' }}
+          </span>
+        </span>
+        <span>Action</span>
+      </div>
+
+      <div
+        class="table-row"
+        *ngFor="let holding of sortedPortfolio"
+        [class.selected]="selectedHolding?.symbol === holding.symbol">
+
+        <div class="stock-info" (click)="openStockModal(holding.symbol)" style="cursor: pointer;">
+          <div class="stock-sym">{{ holding.symbol }}</div>
+          <div class="stock-co">{{ holding.companyName }}</div>
+        </div>
+
+        <div class="cell">{{ holding.quantity }}</div>
+        <div class="cell">₹{{ holding.buyPrice | number:'1.2-2' }}</div>
+        <div class="cell">₹{{ holding.currentPrice | number:'1.2-2' }}</div>
+        <div class="cell">₹{{ holding.totalInvested | number:'1.0-0' }}</div>
+
+        <div class="cell" [class.up]="holding.pnl >= 0" [class.dn]="holding.pnl < 0">
+          {{ holding.pnl >= 0 ? '+' : '' }}₹{{ holding.pnl | number:'1.0-0' }}
+          <div class="pnl-pct" [class.up]="holding.pnlPercent >= 0" [class.dn]="holding.pnlPercent < 0">
+            {{ holding.pnlPercent >= 0 ? '+' : '' }}{{ holding.pnlPercent | number:'1.2-2' }}%
+          </div>
+        </div>
+
+        <button class="sell-btn" (click)="openSellPanel(holding)">Sell</button>
+      </div>
+    </div>
+
+    <!-- Sell Panel -->
+    <div class="sell-panel" *ngIf="selectedHolding">
+      <div class="sell-panel-header">
+        <div>
+          <div class="sell-title">Sell {{ selectedHolding.symbol }}</div>
+          <div class="sell-sub">
+            {{ selectedHolding.companyName }} ·
+            Current ₹{{ selectedHolding.currentPrice | number:'1.2-2' }} ·
+            You own {{ selectedHolding.quantity }} shares
+          </div>
+        </div>
+        <button class="close-btn" (click)="closeSellPanel()">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="1" y1="1" x2="11" y2="11"/>
+            <line x1="11" y1="1" x2="1" y2="11"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="sell-form">
+        <!-- Order Type Toggle -->
+        <div class="order-type-toggle">
+          <button 
+            class="toggle-btn" 
+            [class.active]="orderType === 'MARKET'"
+            (click)="setOrderType('MARKET')">
+            Market
+          </button>
+          <button 
+            class="toggle-btn" 
+            [class.active]="orderType === 'LIMIT'"
+            (click)="setOrderType('LIMIT')">
+            Limit
+          </button>
+        </div>
+
+        <div class="sell-field">
+          <label>Quantity to Sell (Max {{ selectedHolding.quantity }})</label>
+          <input
+            [(ngModel)]="sellQuantity"
+            type="number"
+            [max]="selectedHolding.quantity"
+            min="1"
+            placeholder="Enter quantity"
+            (input)="calculateSellTotal()" />
+        </div>
+
+        <div class="sell-field" *ngIf="orderType === 'LIMIT'">
+          <label>Limit Price</label>
+          <input
+            [(ngModel)]="limitPrice"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Enter limit price"
+            (input)="calculateSellTotal()" />
+        </div>
+
+        <div class="sell-summary">
+          <div class="sell-row">
+            <span>Selling Price</span>
+            <span *ngIf="orderType === 'MARKET'">₹{{ selectedHolding.currentPrice | number:'1.2-2' }} per share</span>
+            <span *ngIf="orderType === 'LIMIT' && limitPrice">₹{{ limitPrice | number:'1.2-2' }} per share</span>
+            <span *ngIf="orderType === 'LIMIT' && !limitPrice">-</span>
+          </div>
+          <div class="sell-row">
+            <span>Quantity</span>
+            <span>{{ sellQuantity || 0 }} shares</span>
+          </div>
+          <div class="sell-divider"></div>
+          <div class="sell-row sell-total-row">
+            <span>You will receive</span>
+            <span class="sell-total-val">₹{{ sellTotal | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="orderType === 'LIMIT'" class="order-info">
+          ℹ️ Limit order will execute when market price reaches your limit price
+        </div>
+
+        <div *ngIf="sellError"   class="sell-error">⚠ {{ sellError }}</div>
+        <div *ngIf="sellSuccess" class="sell-success">✓ {{ sellSuccess }}</div>
+
+        <button
+          class="confirm-sell-btn"
+          (click)="confirmSell()"
+          [disabled]="isSelling || !sellQuantity || sellQuantity <= 0 || (orderType === 'LIMIT' && (!limitPrice || limitPrice <= 0))">
+          {{ isSelling ? 'Processing...' : (orderType === 'MARKET' ? 'Sell at Market' : 'Place Limit Order') }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Analysis Modal -->
+<div class="analysis-modal-overlay" *ngIf="isAnalysisModalOpen" (click)="closeAnalysisModal()">
+  <div class="analysis-modal" (click)="$event.stopPropagation()">
+    <div class="analysis-modal-header">
+      <h2>Portfolio Analysis</h2>
+      <button class="modal-close-btn" (click)="closeAnalysisModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="analysis-modal-content">
+      <!-- Charts Row -->
+      <div class="modal-charts-row">
+        <!-- Sector Allocation Pie Chart -->
+        <div class="modal-chart-card">
+          <div class="modal-chart-header">
+            <h3>Sector Allocation</h3>
+            <p>Distribution across {{ sectorAllocations.length }} sectors</p>
+          </div>
+          <div class="modal-pie-chart-container">
+            <canvas baseChart
+              [type]="pieChartType"
+              [data]="pieChartData"
+              [options]="pieChartOptions">
+            </canvas>
+          </div>
+        </div>
+
+        <!-- Top Holdings Bar Chart -->
+        <div class="modal-chart-card">
+          <div class="modal-chart-header">
+            <h3>Top 10 Holdings</h3>
+            <p>By investment amount</p>
+          </div>
+          <div class="modal-bar-chart-container">
+            <canvas baseChart
+              [type]="barChartType"
+              [data]="barChartData"
+              [options]="barChartOptions">
+            </canvas>
+          </div>
+          <div class="modal-holdings-summary">
+            <div class="modal-summary-stat">
+              <span>Top 3</span>
+              <strong>{{ top3HoldingsPercent | number:'1.1-1' }}%</strong>
+            </div>
+            <div class="modal-summary-stat">
+              <span>Top 5</span>
+              <strong>{{ top5HoldingsPercent | number:'1.1-1' }}%</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance Row -->
+      <div class="modal-performance-row">
+        <!-- Top Gainers -->
+        <div class="modal-performance-card gainers">
+          <div class="modal-perf-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+            <h3>Top Gainers</h3>
+          </div>
+          <div class="modal-perf-list" *ngIf="topGainers.length > 0">
+            <div class="modal-perf-item" *ngFor="let stock of topGainers">
+              <div>
+                <div class="modal-perf-symbol">{{ stock.symbol }}</div>
+                <div class="modal-perf-name">{{ stock.companyName }}</div>
+              </div>
+              <div class="modal-perf-values">
+                <div class="modal-perf-amount up">+₹{{ stock.pnl | number:'1.0-0' }}</div>
+                <div class="modal-perf-percent up">+{{ stock.pnlPercent | number:'1.2-2' }}%</div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-perf-empty" *ngIf="topGainers.length === 0">
+            No gainers yet
+          </div>
+        </div>
+
+        <!-- Top Losers -->
+        <div class="modal-performance-card losers">
+          <div class="modal-perf-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 17l-5-5m0 0l5-5m-5 5h12"/>
+            </svg>
+            <h3>Top Losers</h3>
+          </div>
+          <div class="modal-perf-list" *ngIf="topLosers.length > 0">
+            <div class="modal-perf-item" *ngFor="let stock of topLosers">
+              <div>
+                <div class="modal-perf-symbol">{{ stock.symbol }}</div>
+                <div class="modal-perf-name">{{ stock.companyName }}</div>
+              </div>
+              <div class="modal-perf-values">
+                <div class="modal-perf-amount dn">₹{{ stock.pnl | number:'1.0-0' }}</div>
+                <div class="modal-perf-percent dn">{{ stock.pnlPercent | number:'1.2-2' }}%</div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-perf-empty" *ngIf="topLosers.length === 0">
+            All stocks are profitable! 🎉
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stock Modal -->
+<app-stock-modal
+  *ngIf="isModalOpen"
+  [symbol]="selectedSymbol"
+  [isOpen]="isModalOpen"
+  (close)="closeStockModal()">
+</app-stock-modal>

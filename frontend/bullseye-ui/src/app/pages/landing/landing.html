@@ -1,0 +1,329 @@
+<!-- Landing Page -->
+<div class="landing-page">
+  
+  <!-- Navbar -->
+  <nav class="landing-navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <div class="brand-name">
+          <span class="brand-bulls">BULLS</span><span class="brand-eye">EYE</span>
+        </div>
+        <div class="brand-tagline-nav">TRADE LIKE A PRO</div>
+      </div>
+      <div class="nav-actions">
+        <button class="btn-login" routerLink="/login">Login</button>
+        <button class="btn-register" routerLink="/register">Get Started</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="hero-content">
+        <h1 class="hero-title">Trade Like a Pro with <span class="highlight">BullsEye</span></h1>
+        <p class="hero-subtitle">Your all-in-one platform for smart trading, real-time market data, and portfolio management</p>
+        <div class="hero-buttons">
+          <button class="btn-primary" routerLink="/register">Start Trading Now</button>
+          <button class="btn-secondary" (click)="scrollToFeatures()">Explore Features</button>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-value">50K+</div>
+            <div class="stat-label">Active Traders</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">₹500Cr+</div>
+            <div class="stat-label">Daily Volume</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">99.9%</div>
+            <div class="stat-label">Uptime</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-image">
+        <div class="dashboard-preview">
+          <div class="preview-header">
+            <div class="preview-dot"></div>
+            <div class="preview-dot"></div>
+            <div class="preview-dot"></div>
+          </div>
+          <div class="preview-content">
+            <!-- Stock Chart Visualization -->
+            <div class="preview-chart">
+              <div class="chart-line"></div>
+              <div class="chart-candles">
+                <div class="candle green" style="left: 10%; height: 60%;"></div>
+                <div class="candle red" style="left: 25%; height: 45%;"></div>
+                <div class="candle green" style="left: 40%; height: 70%;"></div>
+                <div class="candle green" style="left: 55%; height: 85%;"></div>
+                <div class="candle red" style="left: 70%; height: 65%;"></div>
+                <div class="candle green" style="left: 85%; height: 90%;"></div>
+              </div>
+              <div class="chart-overlay">
+                <div class="price-tag">₹2,450.50 <span class="price-change">+2.5%</span></div>
+              </div>
+            </div>
+            
+            <!-- Market Stats -->
+            <div class="preview-stats">
+              <div class="preview-stat">
+                <div class="stat-icon nifty">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                  </svg>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-name">NIFTY 50</div>
+                  <div class="stat-value green">21,456.30</div>
+                  <div class="stat-change green">+1.2%</div>
+                </div>
+              </div>
+              <div class="preview-stat">
+                <div class="stat-icon sensex">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 3v18h18"/>
+                    <path d="M18 17l-5-5-4 4-6-6"/>
+                  </svg>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-name">SENSEX</div>
+                  <div class="stat-value green">70,842.15</div>
+                  <div class="stat-change green">+0.8%</div>
+                </div>
+              </div>
+              <div class="preview-stat">
+                <div class="stat-icon portfolio">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/>
+                    <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+                  </svg>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-name">Portfolio</div>
+                  <div class="stat-value">₹5,24,350</div>
+                  <div class="stat-change green">+15.4%</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="preview-actions">
+              <div class="action-btn buy">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Buy
+              </div>
+              <div class="action-btn sell">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 12h14"/>
+                </svg>
+                Sell
+              </div>
+              <div class="action-btn watchlist">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                Watch
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section" id="features">
+    <div class="section-container">
+      <h2 class="section-title">Powerful Features for Smart Trading</h2>
+      <p class="section-subtitle">Everything you need to succeed in the stock market</p>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18"/>
+              <path d="M18 17l-5-5-4 4-6-6"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Real-Time Market Data</h3>
+          <p class="feature-description">Get live stock prices, indices, and market movements with zero delay</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Portfolio Management</h3>
+          <p class="feature-description">Track your investments, analyze performance, and optimize your portfolio</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Instant Order Execution</h3>
+          <p class="feature-description">Buy and sell stocks instantly with our lightning-fast order execution</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Mutual Funds</h3>
+          <p class="feature-description">Invest in curated mutual funds with SIP starting from just ₹500</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Detailed Reports</h3>
+          <p class="feature-description">Download comprehensive trade history, P&L, and account statements</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Learn & Grow</h3>
+          <p class="feature-description">Access educational content and courses to improve your trading skills</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="pricing-section">
+    <div class="section-container">
+      <h2 class="section-title">Transparent Pricing</h2>
+      <p class="section-subtitle">Trade without worrying about hidden charges</p>
+      
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <div class="pricing-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <h3 class="pricing-title">Zero Account Opening Fees</h3>
+          <p class="pricing-description">Open your trading and demat account absolutely free. No hidden charges, no setup costs.</p>
+          <div class="pricing-value">₹0</div>
+        </div>
+
+        <div class="pricing-card featured">
+          <div class="pricing-badge">Most Popular</div>
+          <div class="pricing-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18"/>
+              <path d="M18 17l-5-5-4 4-6-6"/>
+            </svg>
+          </div>
+          <h3 class="pricing-title">Zero Brokerage Charges</h3>
+          <p class="pricing-description">Trade across all segments - Equity, F&O, Currency, and Commodities with zero brokerage.</p>
+          <div class="pricing-value">₹0</div>
+        </div>
+
+        <div class="pricing-card">
+          <div class="pricing-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+          </div>
+          <h3 class="pricing-title">No Account Maintenance Charges</h3>
+          <p class="pricing-description">Keep your account active without any annual or monthly maintenance fees.</p>
+          <div class="pricing-value">₹0</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-container">
+      <h2 class="cta-title">Ready to Start Your Trading Journey?</h2>
+      <p class="cta-subtitle">Join thousands of traders who trust BullsEye for their investments</p>
+      <button class="btn-cta" routerLink="/register">Create Free Account</button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <span class="brand-bulls">BULLS</span><span class="brand-eye">EYE</span>
+          </div>
+          <p class="footer-tagline">Trade Like a Pro</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-column">
+            <h4>Important Links</h4>
+            <a href="https://www.nseindia.com" target="_blank" rel="noopener noreferrer">NSE</a>
+            <a href="https://www.bseindia.com" target="_blank" rel="noopener noreferrer">BSE</a>
+            <a href="https://www.cdslindia.com" target="_blank" rel="noopener noreferrer">CDSL</a>
+            <a href="https://www.mcxindia.com" target="_blank" rel="noopener noreferrer">MCX</a>
+            <a href="https://www.ncdex.com" target="_blank" rel="noopener noreferrer">NCDEX</a>
+            <a href="https://www.sebi.gov.in" target="_blank" rel="noopener noreferrer">SEBI</a>
+            <a href="https://www.amfiindia.com" target="_blank" rel="noopener noreferrer">AMFI</a>
+          </div>
+          <div class="footer-column">
+            <h4>Popular Stocks</h4>
+            <a href="#">Reliance Industries</a>
+            <a href="#">TCS</a>
+            <a href="#">HDFC Bank</a>
+            <a href="#">Infosys</a>
+            <a href="#">ICICI Bank</a>
+            <a href="#">State Bank of India</a>
+            <a href="#">Larsen & Toubro</a>
+          </div>
+          <div class="footer-column">
+            <h4>Indian Indices</h4>
+            <a href="#">NIFTY 50</a>
+            <a href="#">SENSEX</a>
+            <a href="#">BANK NIFTY</a>
+            <a href="#">NIFTY IT</a>
+            <a href="#">NIFTY PHARMA</a>
+            <a href="#">NIFTY AUTO</a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-disclaimer">
+        <h4>Disclaimer</h4>
+        <p>We are not SEBI registered. Investments in the securities market are subject to market risks, read all the related documents carefully before investing. We respect the privacy of our customer. Bullseye Trading Platform is wholly owned subsidiary of Bullseye Broking Pvt. Ltd.</p>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>© 2026 BullsEye Broking Pvt. Ltd. All rights reserved.</p>
+        <p>Made by Savan. For educational purpose only</p>
+      </div>
+    </div>
+  </footer>
+
+</div>

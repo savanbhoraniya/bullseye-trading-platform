@@ -1,0 +1,188 @@
+<div class="orders-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">My Orders</h1>
+      <p class="page-sub">Track your pending and executed orders · Auto-refresh every 30s</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-container">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'pending'"
+      (click)="switchTab('pending')">
+      <span class="tab-label">Pending Orders</span>
+      <span class="tab-count">{{ pendingOrders.length }}</span>
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'executed'"
+      (click)="switchTab('executed')">
+      <span class="tab-label">Executed Orders</span>
+      <span class="tab-count">{{ executedOrders.length }}</span>
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="cancelError" class="alert alert-error">⚠ {{ cancelError }}</div>
+  <div *ngIf="cancelSuccess" class="alert alert-success">✓ {{ cancelSuccess }}</div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">Loading your orders...</div>
+
+  <!-- PENDING ORDERS TAB -->
+  <div *ngIf="!isLoading && activeTab === 'pending'">
+    
+    <!-- Empty State -->
+    <div *ngIf="pendingOrders.length === 0" class="empty-state">
+      <svg viewBox="0 0 48 48" fill="none" stroke="#ddd" stroke-width="1.5">
+        <rect x="8" y="12" width="32" height="28" rx="2"/>
+        <path d="M8 20h32"/>
+        <circle cx="14" cy="16" r="1" fill="#ddd"/>
+        <circle cx="18" cy="16" r="1" fill="#ddd"/>
+      </svg>
+      <p>No pending orders</p>
+      <p class="empty-sub">Your limit orders will appear here until they are executed</p>
+    </div>
+
+    <!-- Pending Orders Table -->
+    <div *ngIf="pendingOrders.length > 0" class="orders-card">
+      <div class="table-head">
+        <span>Stock</span>
+        <span>Type</span>
+        <span>Action</span>
+        <span>Qty</span>
+        <span>Limit Price</span>
+        <span>Total Value</span>
+        <span>Created At</span>
+        <span>Status</span>
+        <span>Action</span>
+      </div>
+
+      <div class="table-row" *ngFor="let order of pendingOrders">
+        <div class="stock-info" (click)="openStockModal(order.symbol)" style="cursor: pointer;">
+          <div class="stock-sym">{{ order.symbol }}</div>
+          <div class="stock-co">{{ order.companyName }}</div>
+        </div>
+
+        <div class="cell">
+          <span class="order-type-badge">{{ getOrderTypeLabel(order.orderType) }}</span>
+        </div>
+
+        <div class="cell">
+          <span class="action-badge" [ngClass]="getActionClass(order.action)">
+            {{ order.action }}
+          </span>
+        </div>
+
+        <div class="cell">{{ order.quantity }}</div>
+
+        <div class="cell">
+          <span *ngIf="order.limitPrice">₹{{ order.limitPrice | number:'1.2-2' }}</span>
+          <span *ngIf="!order.limitPrice">-</span>
+        </div>
+
+        <div class="cell">
+          <span *ngIf="order.limitPrice">₹{{ (order.quantity * order.limitPrice) | number:'1.2-2' }}</span>
+          <span *ngIf="!order.limitPrice">-</span>
+        </div>
+
+        <div class="cell cell-date">{{ formatDate(order.createdAt) }}</div>
+
+        <div class="cell">
+          <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+            {{ order.status }}
+          </span>
+        </div>
+
+        <div class="cell">
+          <button 
+            class="cancel-btn" 
+            (click)="cancelOrder(order.id)"
+            [disabled]="cancellingOrderId === order.id">
+            {{ cancellingOrderId === order.id ? 'Cancelling...' : 'Cancel' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXECUTED ORDERS TAB -->
+  <div *ngIf="!isLoading && activeTab === 'executed'">
+    
+    <!-- Empty State -->
+    <div *ngIf="executedOrders.length === 0" class="empty-state">
+      <svg viewBox="0 0 48 48" fill="none" stroke="#ddd" stroke-width="1.5">
+        <path d="M24 4L29.5 16.5L44 18.5L34 28L36.5 44L24 37L11.5 44L14 28L4 18.5L18.5 16.5L24 4Z"/>
+      </svg>
+      <p>No executed orders</p>
+      <p class="empty-sub">Your completed orders will appear here</p>
+    </div>
+
+    <!-- Executed Orders Table -->
+    <div *ngIf="executedOrders.length > 0" class="orders-card">
+      <div class="table-head">
+        <span>Stock</span>
+        <span>Type</span>
+        <span>Action</span>
+        <span>Qty</span>
+        <span>Executed Price</span>
+        <span>Total Value</span>
+        <span>Created At</span>
+        <span>Executed At</span>
+        <span>Status</span>
+      </div>
+
+      <div class="table-row" *ngFor="let order of executedOrders">
+        <div class="stock-info" (click)="openStockModal(order.symbol)" style="cursor: pointer;">
+          <div class="stock-sym">{{ order.symbol }}</div>
+          <div class="stock-co">{{ order.companyName }}</div>
+        </div>
+
+        <div class="cell">
+          <span class="order-type-badge">{{ getOrderTypeLabel(order.orderType) }}</span>
+        </div>
+
+        <div class="cell">
+          <span class="action-badge" [ngClass]="getActionClass(order.action)">
+            {{ order.action }}
+          </span>
+        </div>
+
+        <div class="cell">{{ order.quantity }}</div>
+
+        <div class="cell">
+          <span *ngIf="order.executedPrice">₹{{ order.executedPrice | number:'1.2-2' }}</span>
+          <span *ngIf="!order.executedPrice">-</span>
+        </div>
+
+        <div class="cell">
+          <span *ngIf="order.executedPrice">₹{{ (order.quantity * order.executedPrice) | number:'1.2-2' }}</span>
+          <span *ngIf="!order.executedPrice">-</span>
+        </div>
+
+        <div class="cell cell-date">{{ formatDate(order.createdAt) }}</div>
+
+        <div class="cell cell-date">{{ formatDate(order.executedAt) }}</div>
+
+        <div class="cell">
+          <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+            {{ order.status }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Stock Modal -->
+<app-stock-modal
+  *ngIf="isModalOpen"
+  [symbol]="selectedSymbol"
+  [isOpen]="isModalOpen"
+  (close)="closeStockModal()">
+</app-stock-modal>
