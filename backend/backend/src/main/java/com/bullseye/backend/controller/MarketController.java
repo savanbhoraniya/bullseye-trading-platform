@@ -10,7 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/market")
-@CrossOrigin(origins = "http://localhost:4200")
 public class MarketController {
 
     private final MarketDataService marketDataService;

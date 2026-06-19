@@ -1,5 +1,5 @@
 // Development environment configuration
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8081'
+  apiUrl: 'https://bullseye-backend-kybu.onrender.com'
 };

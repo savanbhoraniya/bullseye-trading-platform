@@ -34,4 +34,8 @@ COPY --from=build /app/target/backend-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 
 # Run the application
-ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "app.jar"]
+CMD echo "=== Environment Check ===" && \
+    echo "PORT: $PORT" && \
+    echo "DATABASE_URL set: $(if [ -z "$DATABASE_URL" ]; then echo 'NO'; else echo 'YES'; fi)" && \
+    echo "========================" && \
+    java -Dserver.port=${PORT:-10000} -Dspring.profiles.active=prod -jar app.jar
