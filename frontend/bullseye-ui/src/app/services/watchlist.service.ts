@@ -4,13 +4,15 @@ import { HttpClient } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
 
+import { environment } from '../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class WatchlistService {
 
   private baseUrl =
-    'http://localhost:8081/api';
+    `${environment.apiUrl}/api`;
 
   constructor(
     private http: HttpClient

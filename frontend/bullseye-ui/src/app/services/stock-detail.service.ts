@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface StockDetail {
   symbol: string;
@@ -68,7 +69,7 @@ export interface StockNews {
 })
 export class StockDetailService {
 
-  private baseUrl = 'http://localhost:8081/api/stock';
+  private baseUrl = `${environment.apiUrl}/api/stock`;
 
   constructor(private http: HttpClient) {}
 

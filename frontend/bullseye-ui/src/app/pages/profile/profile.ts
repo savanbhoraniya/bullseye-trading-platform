@@ -217,7 +217,7 @@ export class ProfileComponent implements OnInit {
 
     this.http.get<any[]>(
 
-      `http://localhost:8081/api/portfolio/${this.userId}`
+      `${environment.apiUrl}/api/portfolio/${this.userId}`
 
     ).subscribe({
 
@@ -876,7 +876,7 @@ changePassword() {
   }
 
   // Call backend API to change password
-  this.http.post('http://localhost:8081/api/auth/change-password', {
+  this.http.post('${environment.apiUrl}/api/auth/change-password', {
     userId: this.userId,
     currentPassword: this.currentPassword,
     newPassword: this.newPassword
@@ -921,7 +921,7 @@ changePassword() {
 
 // PDF Download Methods
 downloadTradeHistory() {
-  this.http.get<any[]>(`http://localhost:8081/api/reports/trade-history/${this.userId}`)
+  this.http.get<any[]>(`${environment.apiUrl}/api/reports/trade-history/${this.userId}`)
     .subscribe({
       next: (trades) => {
         if (trades.length === 0) {
@@ -937,7 +937,7 @@ downloadTradeHistory() {
 }
 
 downloadAccountStatement() {
-  this.http.get<any>(`http://localhost:8081/api/reports/account-statement/${this.userId}`)
+  this.http.get<any>(`${environment.apiUrl}/api/reports/account-statement/${this.userId}`)
     .subscribe({
       next: (data) => {
         if (!data.transactions || data.transactions.length === 0) {
@@ -958,7 +958,7 @@ downloadAccountStatement() {
 }
 
 downloadPnLReport() {
-  this.http.get<any>(`http://localhost:8081/api/reports/pnl-report/${this.userId}`)
+  this.http.get<any>(`${environment.apiUrl}/api/reports/pnl-report/${this.userId}`)
     .subscribe({
       next: (data) => {
         if (!data.pnlData || data.pnlData.length === 0) {

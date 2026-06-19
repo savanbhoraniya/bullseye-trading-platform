@@ -207,7 +207,7 @@ implements OnInit, OnDestroy {
 
     this.http.get<any[]>(
 
-      `http://localhost:8081/api/watchlist/${this.userId}`
+      `${environment.apiUrl}/api/watchlist/${this.userId}`
 
     ).subscribe({
 
@@ -366,7 +366,7 @@ implements OnInit, OnDestroy {
 
     this.http.get<any>(
 
-      `http://localhost:8081/api/balance/${this.userId}`
+      `${environment.apiUrl}/api/balance/${this.userId}`
 
     ).subscribe({
 
@@ -480,7 +480,7 @@ implements OnInit, OnDestroy {
 
     this.http.post<any>(
 
-      'http://localhost:8081/api/watchlist/add',
+      '${environment.apiUrl}/api/watchlist/add',
 
       {
         userId: this.userId,
@@ -543,7 +543,7 @@ implements OnInit, OnDestroy {
 
     this.http.delete(
 
-      `http://localhost:8081/api/watchlist/${this.userId}/${symbol}`,
+      `${environment.apiUrl}/api/watchlist/${this.userId}/${symbol}`,
 
       {
         responseType: 'text'

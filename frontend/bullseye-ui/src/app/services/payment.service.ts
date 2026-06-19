@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 declare var Razorpay: any;
 
@@ -23,7 +24,7 @@ export interface PaymentVerification {
   providedIn: 'root'
 })
 export class PaymentService {
-  private baseUrl = 'http://localhost:8081/api/payment';
+  private baseUrl = `${environment.apiUrl}/api/payment`;
 
   constructor(private http: HttpClient) {}
 

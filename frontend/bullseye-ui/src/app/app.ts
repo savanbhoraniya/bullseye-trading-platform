@@ -7,6 +7,7 @@ import { MarketService } from './services/market.service';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { ModalComponent } from './components/modal/modal.component';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -181,7 +182,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   loadTickerStocks() {
     // Fetch top 20 stocks for the ticker bar
-    this.http.get<any[]>('http://localhost:8081/api/stocks/ticker?limit=20')
+    this.http.get<any[]>(`${environment.apiUrl}/api/stocks/ticker?limit=20`)
       .subscribe({
         next: (stocks) => {
           this.tickerStocks = stocks.map((stock: any) => ({
@@ -194,7 +195,7 @@ export class AppComponent implements OnInit, OnDestroy {
         error: (err) => {
           console.error('Failed to load ticker stocks:', err);
           // Fallback: if ticker endpoint fails, load all stocks
-          this.http.get<any[]>('http://localhost:8081/api/stocks/search?query=&limit=20')
+          this.http.get<any[]>(`${environment.apiUrl}/api/stocks/search?query=&limit=20`)
             .subscribe({
               next: (stocks) => {
                 this.tickerStocks = stocks.map((stock: any) => ({
@@ -229,7 +230,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.showSearchResults = true;
 
     // Call new stock search API
-    this.http.get<any[]>(`http://localhost:8081/api/stocks/search?query=${encodeURIComponent(query)}&limit=8`)
+    this.http.get<any[]>(`${environment.apiUrl}/api/stocks/search?query=${encodeURIComponent(query)}&limit=8`)
       .subscribe({
         next: (results) => {
           this.searchLoading = false; // ✅ Stop loading FIRST
@@ -267,7 +268,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.addedStockSymbol = stock.symbol;
     this.searchMessage = `${stock.symbol} added to watchlist!`;
 
-    this.http.post('http://localhost:8081/api/watchlist/add', {
+    this.http.post('${environment.apiUrl}/api/watchlist/add', {
       userId: this.userId,
       symbol: stock.symbol,
       companyName: stock.name

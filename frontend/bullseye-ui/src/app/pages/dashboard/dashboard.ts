@@ -788,7 +788,7 @@ implements OnInit, AfterViewInit, OnDestroy {
     console.log('Loading historical data:', { symbol, period, chartType: this.indexChartType });
     
     // Get historical data with specified period
-    this.http.get<any[]>(`http://localhost:8081/api/stock/${symbol}/historical?period=${period}`)
+    this.http.get<any[]>(`${environment.apiUrl}/api/stock/${symbol}/historical?period=${period}`)
       .subscribe({
         next: (data) => {
           console.log('Received data:', data?.length, 'points');
@@ -1025,7 +1025,7 @@ implements OnInit, AfterViewInit, OnDestroy {
   loadPortfolioSummary() {
     const userId = this.user.id;
     
-    this.http.get<any[]>(`http://localhost:8081/api/portfolio/${userId}`)
+    this.http.get<any[]>(`${environment.apiUrl}/api/portfolio/${userId}`)
       .subscribe({
         next: (portfolio) => {
           if (!portfolio || portfolio.length === 0) {
@@ -1068,7 +1068,7 @@ implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadMarketNews() {
-    this.http.get<any[]>('http://localhost:8081/api/news/market')
+    this.http.get<any[]>('${environment.apiUrl}/api/news/market')
       .subscribe({
         next: (news) => {
           this.marketNews = news;

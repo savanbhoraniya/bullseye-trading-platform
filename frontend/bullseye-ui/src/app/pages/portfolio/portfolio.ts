@@ -304,7 +304,7 @@ implements OnInit, OnDestroy {
 
     this.http.get<any[]>(
 
-      `http://localhost:8081/api/portfolio/${this.userId}`
+      `${environment.apiUrl}/api/portfolio/${this.userId}`
 
     ).subscribe({
 
