@@ -482,7 +482,7 @@ implements OnInit, OnDestroy {
 
     this.http.post<any>(
 
-      '${environment.apiUrl}/api/watchlist/add',
+      `${environment.apiUrl}/api/watchlist/add`,
 
       {
         userId: this.userId,

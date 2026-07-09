@@ -268,7 +268,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.addedStockSymbol = stock.symbol;
     this.searchMessage = `${stock.symbol} added to watchlist!`;
 
-    this.http.post('${environment.apiUrl}/api/watchlist/add', {
+    this.http.post(`${environment.apiUrl}/api/watchlist/add`, {
       userId: this.userId,
       symbol: stock.symbol,
       companyName: stock.name

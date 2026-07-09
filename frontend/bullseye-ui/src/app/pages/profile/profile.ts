@@ -878,7 +878,7 @@ changePassword() {
   }
 
   // Call backend API to change password
-  this.http.post('${environment.apiUrl}/api/auth/change-password', {
+  this.http.post(`${environment.apiUrl}/api/auth/change-password`, {
     userId: this.userId,
     currentPassword: this.currentPassword,
     newPassword: this.newPassword

@@ -1070,7 +1070,7 @@ implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadMarketNews() {
-    this.http.get<any[]>('${environment.apiUrl}/api/news/market')
+    this.http.get<any[]>(`${environment.apiUrl}/api/news/market`)
       .subscribe({
         next: (news) => {
           this.marketNews = news;
