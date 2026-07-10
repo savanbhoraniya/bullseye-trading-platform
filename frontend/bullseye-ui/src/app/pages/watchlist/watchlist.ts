@@ -90,6 +90,8 @@ implements OnInit, OnDestroy {
 
   addError = '';
 
+  addSuccess = '';
+
   selectedStock: WatchlistStock | null = null;
 
   buyQuantity: number | null = null;
@@ -108,38 +110,7 @@ implements OnInit, OnDestroy {
 
   private priceInterval: any;
 
-  allStocks: NSEStock[] = [
-    { symbol: 'RELIANCE', companyName: 'Reliance Industries' },
-    { symbol: 'LT', companyName: 'Larsen & Toubro' },
-    { symbol: 'ICICIBANK', companyName: 'ICICI Bank' },
-    { symbol: 'HDFCAMC', companyName: 'HDFC Asset Management Company' },
-    { symbol: 'ICICIPRAMC', companyName: 'ICICI Prudential Asset Management' },
-    { symbol: 'NAM-INDIA', companyName: 'Nippon Life India Asset Management' },
-    { symbol: 'CEATLTD', companyName: 'CEAT Ltd' },
-    { symbol: 'MARUTI', companyName: 'Maruti Suzuki' },
-    { symbol: 'M&M', companyName: 'Mahindra & Mahindra' },
-    { symbol: 'APOLLOHOSP', companyName: 'Apollo Hospitals' },
-    { symbol: 'EICHERMOT', companyName: 'Eicher Motors' },
-    { symbol: 'L&TFH', companyName: 'L&T Finance Holdings' },
-    { symbol: 'BAJFINANCE', companyName: 'Bajaj Finance' },
-    { symbol: 'TCS', companyName: 'Tata Consultancy Services' },
-    { symbol: 'INFY', companyName: 'Infosys' },
-    { symbol: 'POLYCAB', companyName: 'Polycab India' },
-    { symbol: 'MUTHOOTFIN', companyName: 'Muthoot Finance' },
-    { symbol: 'ADANIPORTS', companyName: 'Adani Ports and SEZ' },
-    { symbol: 'SHRIRAMFIN', companyName: 'Shriram Finance' },
-    { symbol: 'ULTRACEMCO', companyName: 'UltraTech Cement' },
-    { symbol: 'CIPLA', companyName: 'Cipla' },
-    { symbol: 'SUNPHARMA', companyName: 'Sun Pharma' },
-    { symbol: 'SBIN', companyName: 'State Bank of India' },
-    { symbol: 'BANKBARODA', companyName: 'Bank of Baroda' },
-    { symbol: 'BEL', companyName: 'Bharat Electronics Ltd' },
-    { symbol: 'TATAMOTORS', companyName: 'Tata Motors' },
-    { symbol: 'HDFCBANK', companyName: 'HDFC Bank' },
-    { symbol: 'KOTAKBANK', companyName: 'Kotak Mahindra Bank' },
-    { symbol: 'AXISBANK', companyName: 'Axis Bank' },
-    { symbol: 'WIPRO', companyName: 'Wipro' }
-  ];
+  allStocks: NSEStock[] = [];
 
   constructor(
     private router: Router,
@@ -170,8 +141,8 @@ implements OnInit, OnDestroy {
         ? parseInt(user.id)
         : 0;
 
+    this.loadAllStocks();
     this.loadWatchlist();
-
     this.loadBalance();
 
   }
@@ -201,6 +172,25 @@ implements OnInit, OnDestroy {
 
     );
 
+  }
+
+  loadAllStocks() {
+    // Load all 2100+ stocks from backend
+    this.http.get<any[]>(`${environment.apiUrl}/api/stocks/search?query=&limit=3000`)
+      .subscribe({
+        next: (stocks) => {
+          this.allStocks = stocks.map(stock => ({
+            symbol: stock.symbol,
+            companyName: stock.companyName
+          }));
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Failed to load all stocks:', err);
+          // Fallback to empty array if API fails
+          this.allStocks = [];
+        }
+      });
   }
 
   loadWatchlist() {
@@ -510,13 +500,18 @@ implements OnInit, OnDestroy {
 
         this.loadLivePrices();
 
-        this.showAddModal = false;
-
-        this.searchQuery = '';
-
-        this.filteredStocks = [];
-
+        // Show success message
+        this.addSuccess = `${stock.symbol} added to watchlist!`;
         this.cdr.detectChanges();
+
+        // Auto-hide success message and close modal after 1.5 seconds
+        setTimeout(() => {
+          this.addSuccess = '';
+          this.showAddModal = false;
+          this.searchQuery = '';
+          this.filteredStocks = [];
+          this.cdr.detectChanges();
+        }, 1500);
 
       },
 

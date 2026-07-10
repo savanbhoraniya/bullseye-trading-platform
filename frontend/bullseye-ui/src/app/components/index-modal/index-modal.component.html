@@ -1,0 +1,103 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    
+    <!-- Close Button -->
+    <button class="close-btn" (click)="closeModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading index data...</p>
+    </div>
+
+    <!-- Content -->
+    <div class="modal-body" *ngIf="!isLoading && indexDetails">
+      
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="index-info">
+          <h2 class="index-name">{{ indexDetails.name }}</h2>
+          <span class="index-symbol">{{ indexDetails.symbol }}</span>
+        </div>
+        <div class="index-price-block">
+          <div class="current-price">₹{{ indexDetails.price | number:'1.2-2' }}</div>
+          <div class="price-change" [class.positive]="indexDetails.changePercent >= 0" [class.negative]="indexDetails.changePercent < 0">
+            <span class="arrow">{{ indexDetails.changePercent >= 0 ? '▲' : '▼' }}</span>
+            <span class="change-value">{{ indexDetails.change >= 0 ? '+' : '' }}{{ indexDetails.change | number:'1.2-2' }}</span>
+            <span class="change-percent">({{ indexDetails.changePercent >= 0 ? '+' : '' }}{{ indexDetails.changePercent | number:'1.2-2' }}%)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-label">Open</span>
+          <span class="stat-value">₹{{ indexDetails.open | number:'1.2-2' }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Prev Close</span>
+          <span class="stat-value">₹{{ indexDetails.prevClose | number:'1.2-2' }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">52W High</span>
+          <span class="stat-value positive">₹{{ indexDetails.high52w | number:'1.2-2' }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">52W Low</span>
+          <span class="stat-value negative">₹{{ indexDetails.low52w | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <!-- Chart Controls -->
+      <div class="chart-controls">
+        <div class="chart-type-toggle">
+          <button 
+            class="toggle-btn" 
+            [class.active]="chartType === 'line'"
+            (click)="changeChartType('line')">
+            Line
+          </button>
+          <button 
+            class="toggle-btn" 
+            [class.active]="chartType === 'candlestick'"
+            (click)="changeChartType('candlestick')">
+            Candle
+          </button>
+        </div>
+
+        <div class="period-tabs">
+          <button 
+            *ngFor="let period of periods" 
+            class="period-btn" 
+            [class.active]="selectedPeriod === period"
+            (click)="changePeriod(period)">
+            {{ period }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-container">
+        <apx-chart
+          [series]="chartOptions.series!"
+          [chart]="chartOptions.chart!"
+          [xaxis]="chartOptions.xaxis!"
+          [yaxis]="chartOptions.yaxis!"
+          [tooltip]="chartOptions.tooltip!"
+          [grid]="chartOptions.grid!"
+          [dataLabels]="chartOptions.dataLabels!"
+          [stroke]="chartOptions.stroke!"
+          [colors]="chartOptions.colors!"
+        ></apx-chart>
+      </div>
+
+    </div>
+
+  </div>
+</div>

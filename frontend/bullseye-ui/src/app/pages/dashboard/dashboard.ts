@@ -25,6 +25,7 @@ import { MarketService }
 from '../../services/market.service';
 
 import { StockModalComponent } from '../../components/stock-modal/stock-modal.component';
+import { IndexModalComponent } from '../../components/index-modal/index-modal.component';
 
 import { NgApexchartsModule } from 'ng-apexcharts';
 import {
@@ -117,6 +118,7 @@ interface PortfolioSummary {
     RouterModule,
     DecimalPipe,
     StockModalComponent,
+    IndexModalComponent,
     NgApexchartsModule
   ],
   templateUrl: './dashboard.html',
@@ -507,6 +509,11 @@ implements OnInit, AfterViewInit, OnDestroy {
   // Stock Modal
   isStockModalOpen = false;
   selectedStockSymbol = '';
+
+  // Index Modal
+  isIndexModalOpen = false;
+  selectedIndexSymbol = '';
+  selectedIndexName = '';
 
   constructor(
     private router: Router,
@@ -1140,6 +1147,24 @@ implements OnInit, AfterViewInit, OnDestroy {
   onViewFullDetails(symbol: string) {
     this.closeStockModal();
     this.router.navigate(['/stock', symbol]);
+  }
+
+  openIndexModal(sector: SectorData) {
+    console.log('Opening index modal for sector:', sector);
+    this.selectedIndexSymbol = sector.symbol;
+    this.selectedIndexName = sector.name;
+    this.isIndexModalOpen = true;
+    console.log('Modal state:', {
+      symbol: this.selectedIndexSymbol,
+      name: this.selectedIndexName,
+      isOpen: this.isIndexModalOpen
+    });
+  }
+
+  closeIndexModal() {
+    this.isIndexModalOpen = false;
+    this.selectedIndexSymbol = '';
+    this.selectedIndexName = '';
   }
 
   ngOnDestroy() {

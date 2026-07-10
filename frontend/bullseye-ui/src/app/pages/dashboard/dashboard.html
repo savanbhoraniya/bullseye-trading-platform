@@ -180,7 +180,7 @@
       </div>
 
       <div class="sectors-grid">
-        <div class="sector-card" *ngFor="let sector of sectors">
+        <div class="sector-card" *ngFor="let sector of sectors" (click)="openIndexModal(sector)">
           <div class="sector-name">{{ sector.name }}</div>
           <div class="sector-price">₹{{ sector.price | number:'1.2-2' }}</div>
           <div class="sector-change" [class.up]="sector.change >= 0" [class.down]="sector.change < 0">
@@ -508,3 +508,11 @@
   (close)="closeStockModal()"
   (viewFullDetails)="onViewFullDetails($event)">
 </app-stock-modal>
+
+<!-- Index Modal -->
+<app-index-modal
+  [indexSymbol]="selectedIndexSymbol"
+  [indexName]="selectedIndexName"
+  [isOpen]="isIndexModalOpen"
+  (close)="closeIndexModal()">
+</app-index-modal>

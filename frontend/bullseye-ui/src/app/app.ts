@@ -237,9 +237,7 @@ export class AppComponent implements OnInit, OnDestroy {
           this.searchResults = results.map((stock: any) => ({
             symbol: stock.symbol,
             name: stock.companyName,
-            industry: stock.industry,
-            price: stock.price,
-            changePercent: stock.changePercent
+            industry: stock.industry
           }));
           this.showSearchResults = true;
         },

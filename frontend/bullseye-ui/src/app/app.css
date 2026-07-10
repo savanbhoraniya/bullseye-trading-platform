@@ -495,51 +495,6 @@ a { text-decoration: none; }
   opacity: 0.8;
 }
 
-.search-result-price {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 3px;
-  flex-shrink: 0;
-  min-width: 90px;
-}
-
-.search-result-price .price {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.search-result-price .price.unavailable {
-  color: var(--text-secondary);
-  font-weight: 500;
-  opacity: 0.6;
-}
-
-.search-result-price .change {
-  font-size: 11px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  padding: 2px 8px;
-  border-radius: 4px;
-  text-align: center;
-  min-width: 60px;
-  white-space: nowrap;
-}
-
-.search-result-price .change.up {
-  background: #f0faf4;
-  color: #16a34a;
-}
-
-.search-result-price .change.down {
-  background: #fef2f2;
-  color: #dc2626;
-}
-
 .search-loading {
   display: flex;
   flex-direction: column;

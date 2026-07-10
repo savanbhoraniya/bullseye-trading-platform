@@ -51,14 +51,6 @@
           <div class="search-result-industry" *ngIf="stock.industry">{{ stock.industry }}</div>
         </div>
         
-        <div class="search-result-price">
-          <div class="price" *ngIf="stock.price && stock.price > 0">₹{{ stock.price | number:'1.2-2' }}</div>
-          <div class="price unavailable" *ngIf="!stock.price || stock.price === 0">---</div>
-          <div class="change" [class.up]="stock.changePercent >= 0" [class.down]="stock.changePercent < 0" *ngIf="stock.price && stock.price > 0">
-            {{ stock.changePercent >= 0 ? '+' : '' }}{{ stock.changePercent | number:'1.2-2' }}%
-          </div>
-        </div>
-        
         <!-- Success State (Added) -->
         <button 
           class="add-to-watchlist-btn success" 
